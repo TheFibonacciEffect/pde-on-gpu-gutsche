@@ -18,7 +18,7 @@ function avec_diff(ic::Function,lx,dc,vx,ttot)
         C[2:end  ] .-= dt.*max(vx,0.0).*diff(C)./dx # always take the derivative in the direction of movement
         C[1:end-1] .-= dt.*min(vx,0.0).*diff(C)./dx
         # diffusion
-        q          .= -c.*diff(C)./dx
+        q          .= -dc.*diff(C)./dx
         C[2:end-1] .-=   dt.*diff(q)./dx
         # visualisation
         plot(x,C,label="concentration")
@@ -31,7 +31,6 @@ lx   = 20.0  # domain length
 dc   = 0.1   # diffusion coefficient
 vx   = 1.0   # advection velocity
 ttot = 20.0  # total simulation time
-c = 1 #diffusion speed
 gauss(x) = exp(-0.5*(x-lx/4)^2)
 anim = avec_diff(gauss,lx,dc,vx,ttot)
 gif(anim,"figs/advection_diff.gif",fps=15)
