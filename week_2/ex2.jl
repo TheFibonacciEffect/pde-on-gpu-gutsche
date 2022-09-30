@@ -16,11 +16,11 @@ function finite_step!(C,q,dt,dx,ξ,dc,Ceq)
     C[2:end-1] .-=   dt.*diff(q)./dx
 end
 
-function avec_diff(ic::Function,ttot,lx,dc,xi,Ceq)
+function reaction_diff(ic::Function,ttot,lx,dc,xi,Ceq)
     # Nummerics
     nx = 200
     dx = lx/nx
-    dt   = dx^2/dc^2
+    @show dt   = dx^2/dc/2
     nt = Int(round(ttot/dt))
     nvis = 3
     x = range(0,lx,nx)
@@ -46,12 +46,12 @@ function main()
     ttot = 20.0  # total simulation time
     C_eq = 0.4
     gauss(x) = exp(-(x-lx/4)^2)
-    Cfinal,C0,x,anim = avec_diff(gauss,ttot,lx,dc,xi,C_eq)
+    Cfinal,C0,x,anim = reaction_diff(gauss,ttot,lx,dc,xi,C_eq)
     anim,Cfinal,C0,x
 end
 
 anim,Cfinal,C0,x = main()
-gif(anim,"week_2/tmp/advection_diff.gif",fps=15)
+gif(anim,"week_2/tmp/reaction_diff.gif",fps=15)
 
 
 m,n = findmax(Cfinal)
