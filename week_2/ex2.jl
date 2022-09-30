@@ -10,20 +10,19 @@ Logging.disable_logging(Logging.Warn)
 function finite_step!(C,q,dt,dx,ξ,dc,Ceq)
     # I am a little confused about what boundary conditions to use
     # reaction
-    @show (C[51]-Ceq) / ξ *dt
-    @show C -= (C.-Ceq) / ξ *dt
+    C .+= -(C.-Ceq) / ξ *dt
     # diffusion
     q          .= -dc.*diff(C)./dx
-    C[2:end-1] .-=   dt.*diff(q)./dx
+    C[2:end-1] .+= -  dt.*diff(q)./dx
 end
 
-function reaction_diff(ic::Function,ttot,lx,dc,xi,Ceq)
+function reaction_diff(ic::Function,ttot,lx,dc,xi,Ceq,animation_length_seconds)
     # Nummerics
     nx = 200
     dx = lx/nx
     @show dt   = dx^2/dc/2
     @show nt = Int(round(ttot/dt))
-    nvis = Int(round(nt/15))
+    nvis = Int(round(nt/15/animation_length_seconds))
     x = range(0,lx,nx)
     C0 = ic.(x); C = copy(C0)
     q = zeros(nx-1)
@@ -47,12 +46,12 @@ function main()
     ttot = 20.0  # total simulation time
     C_eq = 0.4
     gauss(x) = exp(-(x-lx/4)^2)
-    Cfinal,C0,x,anim = reaction_diff(gauss,ttot,lx,dc,xi,C_eq)
+    Cfinal,C0,x,anim = reaction_diff(gauss,ttot,lx,dc,xi,C_eq,7)
     anim,Cfinal,C0,x
 end
 
 anim,Cfinal,C0,x = main();
-gif(anim,"week_2/tmp/reaction_diff.gif",fps=15)
+gif(anim,"week_2/figs/reaction_diff.gif",fps=15)
 
 
 m,n = findmax(Cfinal)
