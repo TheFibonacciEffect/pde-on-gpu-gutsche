@@ -10,7 +10,8 @@ Logging.disable_logging(Logging.Warn)
 function finite_step!(C,q,dt,dx,ξ,dc,Ceq)
     # I am a little confused about what boundary conditions to use
     # reaction
-    C -= (C.-Ceq) / ξ *dt
+    @show (C[51]-Ceq) / ξ *dt
+    @show C -= (C.-Ceq) / ξ *dt
     # diffusion
     q          .= -dc.*diff(C)./dx
     C[2:end-1] .-=   dt.*diff(q)./dx
@@ -21,8 +22,8 @@ function reaction_diff(ic::Function,ttot,lx,dc,xi,Ceq)
     nx = 200
     dx = lx/nx
     @show dt   = dx^2/dc/2
-    nt = Int(round(ttot/dt))
-    nvis = 3
+    @show nt = Int(round(ttot/dt))
+    nvis = Int(round(nt/15))
     x = range(0,lx,nx)
     C0 = ic.(x); C = copy(C0)
     q = zeros(nx-1)
@@ -50,7 +51,7 @@ function main()
     anim,Cfinal,C0,x
 end
 
-anim,Cfinal,C0,x = main()
+anim,Cfinal,C0,x = main();
 gif(anim,"week_2/tmp/reaction_diff.gif",fps=15)
 
 
