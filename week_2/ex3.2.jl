@@ -53,7 +53,7 @@ function main()
 end
 
 anim,s = main();
-gif(anim,"week_2/burgers.gif",fps=15)
+gif(anim,"week_2/figs/burgers.gif",fps=15)
 
 m,n = findmax(s.C)
 plot(s.xc,s.C,label="final concentration  (max:$(round(m,digits=2)) at $(s.xc[n])",xlabel="distance",ylabel="concentration")

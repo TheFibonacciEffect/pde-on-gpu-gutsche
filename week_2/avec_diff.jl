@@ -53,7 +53,7 @@ function main()
 end
 
 anim = main()
-gif(anim,"week_2/tmp/advection_diff.gif",fps=15)
+gif(anim,"week_2/figs/advection_diff.gif",fps=15)
 m,n = findmax(Cfinal)
 plot(x,Cfinal,label="final concentration  (max:$(round(m,digits=2)) at $(x[n])",xlabel="distance",ylabel="concentration")
 plot!(x,C0,label="inital concentration",xlabel="distance",ylabel="concentration")
