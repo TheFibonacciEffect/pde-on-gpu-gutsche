@@ -9,6 +9,7 @@ import Logging
 Logging.disable_logging(Logging.Warn)
 
 Base.@kwdef mutable struct Setup
+    # it took me way to long to construct this struct, because usually julia does not support member functions
     # physics
     lx   = 20.0
     dc   = 1.0
@@ -23,10 +24,10 @@ Base.@kwdef mutable struct Setup
     # inital condition
     ic = x-> exp(-(x-lx/4)^2)
     # arrays
-    xc   = LinRange(s.dx/2,s.lx-s.dx/2,s.nx)
+    xc   = LinRange(dx/2,lx-dx/2,nx)
     # C0 = ic.(xc)
     C0 = ic.(xc)
-    C = copy(C)
+    C = copy(C0)
     q = zeros(nx-1)
     # collections for easy use
     dgl_params=[dc,n]
@@ -36,7 +37,7 @@ end
 function finite_step!(s::Setup)
     # diffusion
     s.q          .= -s.dc.*diff(s.C.^s.n)./s.dx
-    s.C[2:end-1] .+= -  s.dt.*diff(q)./s.dx
+    s.C[2:end-1] .+= -  s.dt.*diff(s.q)./s.dx
 end
 
 function reaction_diff!(s::Setup)
@@ -44,25 +45,22 @@ p = Progress(s.nt, 0.2)
 anim = @animate for i in 1:s.nt
     finite_step!(s)
     # visualisation
-    plot(s.xc,s.C,label="concentration at t=$(round(dt*i,digits=1))",xlabel="distance",ylabel="concentration")
+    plot(s.xc,s.C,label="concentration at t=$(round(s.dt*i,digits=1))",xlabel="distance",ylabel="concentration")
     plot!(s.xc,s.C0,label="inital concentration")
     next!(p)
 end every s.nvis
 return anim
 end
 
-
-# In numpy there is
-# `np.set_printoptions(formatter={'float_kind':float_formatter})`
 function main()
     s = Setup()
-    anim = reaction_diff!(s,20,3)
-    anim
+    anim = reaction_diff!(s)
+    anim,s
 end
 
-anim = main();
-gif(anim,"week_2/figs/reaction_diff.gif",fps=15)
+anim,s = main();
+gif(anim,"week_2/figs/power-law.gif",fps=15)
 
-m,n = findmax(Cfinal)
-plot(x,Cfinal,label="final concentration  (max:$(round(m,digits=2)) at $(x[n])",xlabel="distance",ylabel="concentration")
-plot!(x,C0,label="inital concentration",xlabel="distance",ylabel="concentration")
+m,n = findmax(s.C)
+plot(s.xc,s.C,label="final concentration  (max:$(round(m,digits=2)) at $(s.xc[n])",xlabel="distance",ylabel="concentration")
+plot!(s.xc,s.C0,label="inital concentration",xlabel="distance",ylabel="concentration")
