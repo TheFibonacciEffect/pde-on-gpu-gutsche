@@ -1,5 +1,3 @@
-using Revise
-
 using Plots
 #imports a nice progress bar
 using ProgressMeter
