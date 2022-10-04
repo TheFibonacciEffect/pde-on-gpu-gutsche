@@ -8,7 +8,6 @@ import Logging
 Logging.disable_logging(Logging.Warn)
 
 function finite_step!(C,q,dt,dx,ξ,dc,Ceq)
-    # I am a little confused about what boundary conditions to use
     # reaction
     C .+= -(C.-Ceq) / ξ *dt
     # diffusion
@@ -17,11 +16,12 @@ function finite_step!(C,q,dt,dx,ξ,dc,Ceq)
 end
 
 function reaction_diff(ic::Function,ttot,lx,dc,xi,Ceq,animation_length_seconds)
-    # Nummerics
+    # Nummerics & derived nummerics
     nx = 200
     dx = lx/nx
-    @show dt   = dx^2/dc/2
-    @show nt = Int(round(ttot/dt))
+    dt   = dx^2/dc/2
+
+    nt = Int(round(ttot/dt))
     nvis = Int(round(nt/15/animation_length_seconds))
     x = range(0,lx,nx)
     C0 = ic.(x); C = copy(C0)

@@ -8,7 +8,6 @@ import Logging
 Logging.disable_logging(Logging.Warn)
 
 function finite_step!(C,q,dt,dx,vx,dc)
-    # I am a little confused about what boundary conditions to use
     # advection
     C[2:end  ] .-= dt.*max(vx,0.0).*diff(C)./dx # always take the derivative in the direction of movement
     C[1:end-1] .-= dt.*min(vx,0.0).*diff(C)./dx
@@ -18,7 +17,7 @@ function finite_step!(C,q,dt,dx,vx,dc)
 end
 
 function avec_diff(ic::Function,lx,dc,vx,ttot)
-    # Nummerics
+    # Nummerics & derived Nummerics
     nx = 200
     dx = lx/nx
     dta  = dx/abs(vx)

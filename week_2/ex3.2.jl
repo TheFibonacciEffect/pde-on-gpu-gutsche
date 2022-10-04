@@ -6,8 +6,8 @@ using ProgressMeter
 import Logging
 Logging.disable_logging(Logging.Warn)
 
+"Struct to initialize all variables needed for the computation"
 Base.@kwdef mutable struct Setup
-    # it took me way to long to construct this struct, because usually julia does not support member functions
     # physics
     lx   = 20.0
     vx   = 1.0
@@ -30,20 +30,21 @@ end
 
 
 function finite_step!(s::Setup)
-    # diffusion
+    # inviscid Burgers
     s.C[2:end] .+= -  s.dt.*diff(s.C.^s.n)./s.dx
 end
 
+"modefies the Setup type in the input so that it contains the solution in the Setup.C field"
 function solve_pde!(s::Setup)
-p = Progress(s.nt, 0.2)
-anim = @animate for i in 1:s.nt
-    finite_step!(s)
-    # visualisation
-    plot(s.xc,s.C,label="concentration at t=$(round(s.dt*i,digits=1))",xlabel="distance",ylabel="concentration")
-    plot!(s.xc,s.C0,label="inital concentration")
-    next!(p)
-end every s.nvis
-return anim
+    p = Progress(s.nt, 0.2)
+    anim = @animate for i in 1:s.nt
+        finite_step!(s)
+        # visualisation
+        plot(s.xc,s.C,label="concentration at t=$(round(s.dt*i,digits=1))",xlabel="distance",ylabel="concentration")
+        plot!(s.xc,s.C0,label="inital concentration")
+        next!(p)
+    end every s.nvis
+    return anim
 end
 
 function main()
