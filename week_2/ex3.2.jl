@@ -12,6 +12,7 @@ Base.@kwdef mutable struct Setup
     lx   = 20.0
     vx   = 1.0
     n    = 2
+    v = 1
     # numerics
     nx   = 1000
     nvis = 15
@@ -31,7 +32,8 @@ end
 
 function finite_step!(s::Setup)
     # inviscid Burgers
-    s.C[2:end] .+= -  s.dt.*diff(s.C.^s.n)./s.dx
+    s.C[2:end] .+= -  max(s.v,0.) .* s.dt.*diff(s.C.^s.n)./s.dx
+    s.C[1:end-1] .+= -  min(s.v,0) .* s.dt.*diff(s.C.^s.n)./s.dx
 end
 
 "modefies the Setup type in the input so that it contains the solution in the Setup.C field"
@@ -43,6 +45,9 @@ function solve_pde!(s::Setup)
         plot(s.xc,s.C,label="concentration at t=$(round(s.dt*i,digits=1))",xlabel="distance",ylabel="concentration")
         plot!(s.xc,s.C0,label="inital concentration")
         next!(p)
+        if i > s.nx #change velocyity after half the time
+            s.v = -1.
+        end
     end every s.nvis
     return anim
 end

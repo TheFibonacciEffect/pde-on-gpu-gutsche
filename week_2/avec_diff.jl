@@ -36,6 +36,9 @@ function avec_diff(ic::Function,lx,dc,vx,ttot)
         plot(x,C,label="concentration at t=$(round(dt*i,digits=1))",xlabel="distance",ylabel="concentration")
         plot!(x,C0,label="inital concentration")
         next!(p)
+        if i*dt > ttot/2
+            vx = -1.
+        end
     end every nvis
     return C,C0,x,anim
 end
@@ -48,10 +51,10 @@ function main()
     ttot = 20.0  # total simulation time
     gauss(x) = exp(-(x-lx/4)^2)
     Cfinal,C0,x,anim = avec_diff(gauss,lx,dc,vx,ttot)
-    anim
+    Cfinal,C0,x, anim
 end
 
-anim = main()
+Cfinal,C0,x, anim = main()
 gif(anim,"week_2/figs/advection_diff.gif",fps=15)
 m,n = findmax(Cfinal)
 plot(x,Cfinal,label="final concentration  (max:$(round(m,digits=2)) at $(x[n])",xlabel="distance",ylabel="concentration")
