@@ -4,21 +4,20 @@ using ProgressMeter
 default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @views function steady_diffusion_1D()
-    # physics
+    # physics and nummerics
+    vx = 1.0
     lx      = 20.0
+    nx      = 100
+    dx      = lx/nx
+    dt = dx/abs(vx)
     dc      = 1.0
-    da      = 1000.0
+    da      = lx^2/dc/dt
     re      = π + sqrt(π^2 + da)
     ρ       = (lx/(dc*re))^2
-    # numerics
-    nx      = 100
     ϵtol    = 1e-8
     maxiter = 50nx
     ncheck  = ceil(Int,0.25nx)
     nt = 10 #number of physical timesteps
-    # derived numerics
-    dt       = lx^2/dc/da
-    dx      = lx/nx
     xc      = LinRange(dx/2,lx-dx/2,nx)
     dτ      = dx/sqrt(1/ρ)
     # array initialisation
@@ -27,7 +26,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     qx      = zeros(Float64, nx-1)
     # other
     p = Progress(nt, 1)
-    anim = @animate for it = 1:nt
+    for it = 1:nt
         C_old .= C
         # iteration loop
         iter = 1; err = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
@@ -40,17 +39,14 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
             end
             iter += 1
         end
-        p1 = plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
-                xlabel="lx",ylabel="Concentration",title="Implicit transient diffusion using dual timestepping")
-        p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",
-                yscale=:log10,grid=true,markershape=:circle,markersize=10)
-        display(plot(p1,p2;layout=(2,1)))
         
         next!(p)
     end
-    anim
+    p1 = plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
+            xlabel="lx",ylabel="Concentration",title="implicit_advection_diffusion_1D")
+    p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",
+            yscale=:log10,grid=true,markershape=:circle,markersize=10)
+    display(plot(p1,p2;layout=(2,1)))
 end
 
-an =  steady_diffusion_1D()
-
-gif(an,fps=2)
+steady_diffusion_1D()
