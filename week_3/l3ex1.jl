@@ -53,4 +53,4 @@ end
 
 an =  steady_diffusion_1D()
 
-gif(an,fps=15)
+gif(an,fps=2)
