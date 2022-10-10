@@ -43,7 +43,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
             iter += 1
         end
         p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",
-                yscale=:log10,grid=true,markershape=:circle,markersize=10)
+                yscale=:log10,grid=true,markershape=:circle,markersize=10, title="error in peseudotimestep")
         display(plot(p1,p2;layout=(2,1)))
         
         next!(p)
@@ -53,4 +53,4 @@ end
 
 an =  steady_diffusion_1D()
 
-gif(an,fps=2)
+gif(an,"figs/l3e1.gif",fps=2)
