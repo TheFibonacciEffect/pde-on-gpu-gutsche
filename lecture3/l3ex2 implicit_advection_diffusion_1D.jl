@@ -41,6 +41,10 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         end
         
         next!(p)
+        C[1:end-1] .-= dt.* max(vx,0) .*diff(C)./dx
+        vx > 0 && C[1] = C_old[1]
+        C[2:end]   .-= dt.* min(vx,0) .*diff(C)./dx
+        vx < 0 && C[end] = C_old[end]
     end
     plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
             xlabel="lx",ylabel="Concentration",title="implicit_advection_diffusion_1D")

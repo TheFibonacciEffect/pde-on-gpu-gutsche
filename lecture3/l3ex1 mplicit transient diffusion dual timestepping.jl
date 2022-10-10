@@ -29,6 +29,8 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     p = Progress(nt, 1)
     anim = @animate for it = 1:nt
         C_old .= C
+        p1 = plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
+                xlabel="lx",ylabel="Concentration",title="Implicit transient diffusion using dual timestepping")
         # iteration loop
         iter = 1; err = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
         while err >= ϵtol && iter <= maxiter
@@ -40,8 +42,6 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
             end
             iter += 1
         end
-        p1 = plot(xc,[C_i,C];xlims=(0,lx), ylims=(-0.1,2.0),
-                xlabel="lx",ylabel="Concentration",title="Implicit transient diffusion using dual timestepping")
         p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",
                 yscale=:log10,grid=true,markershape=:circle,markersize=10)
         display(plot(p1,p2;layout=(2,1)))
