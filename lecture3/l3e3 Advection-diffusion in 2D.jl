@@ -42,6 +42,7 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
         while err >= ϵtol && iter <= maxiter
             qx           .-= dτ./(ρ   .+ dτ/dc).*(qx./dc                                 .+ diff(C,dims=1) ./dx)
             qy           .-= dτ./(ρ   .+ dτ/dc).*(qy./dc                                 .+ diff(C,dims=2) ./dy)
+            # calculate timeveolution first 
             diffxC = dτ./(1.0 .+ dτ/dt).*((C[2:end-1,:] .- C_old[2:end-1,:])./dt .+ diff(qx,dims=1)./dx)
             diffyC = dτ./(1.0 .+ dτ/dt).*((C[:,2:end-1] .- C_old[:,2:end-1])./dt .+ diff(qy,dims=2)./dy)
             C[2:end-1,:] .-= diffxC
