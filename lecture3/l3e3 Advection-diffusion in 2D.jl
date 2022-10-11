@@ -1,7 +1,7 @@
 using Plots,Plots.Measures,Printf
 #imports a nice progress bar
 using ProgressMeter
-default(size=(1200,1200),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+default(size=(800,1200), framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @views function steady_diffusion_1D()
     # physics
