@@ -1,14 +1,14 @@
 using Plots,Plots.Measures,Printf
 #imports a nice progress bar
 using ProgressMeter
-default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+default(size=(1200,1200),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @views function steady_diffusion_1D()
     # physics
     lx,ly   = 10.0,10.0
     dc      = 1.0
-    vx      = 10.0
-    vy      = -10.0
+    vx      = 1.0
+    vy      = -1.0
     da      = 1000.0
     re      = π + sqrt(π^2 + da)
     ρ       = (lx/(dc*re))^2 #how does ly factor into this?
@@ -17,7 +17,7 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
     ϵtol    = 1e-8
     maxiter = 10nx
     ncheck  = ceil(Int,0.02nx)
-    nt      = 50
+    nt      = 1
     # derived numerics
     dx      = lx/nx
     dy      = ly/ny
@@ -32,7 +32,7 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
     qy      = zeros(nx,ny-1)
     # other
     p = Progress(nt, 1)
-    anim = @animate for it = 1:nt
+    for it = 1:nt
         C_old .= C
         # why does this produce such a strange plot?
         # p1 = heatmap(xc,yc,C;xlabel="lx",ylabel="ly",title="Implicit transient diffusion using dual timestepping")
@@ -43,8 +43,8 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
             qx .-= dτ./(ρ .+ dτ/dc).*(qx./dc .+ diff(C,dims=1) ./dx)
             qy .-= dτ./(ρ .+ dτ/dc).*(qy./dc .+ diff(C,dims=2) ./dy)
             # calculate timeveolution first 
-            C[2:end-1,:] .-= dτ./(1.0 .+ dτ/dt).* diff(qx,dims=1)./dx
-            C[:,2:end-1] .-= dτ./(1.0 .+ dτ/dt).* diff(qy,dims=2)./dy
+            C[2:end-1,2:end-1] .-= dτ./(1.0 .+ dτ/dt).* (diff(qx[:,2:end-1],dims=1)./dx .+ diff(qy[2:end-1,:],dims=2)./dy)
+            #C[:,2:end-1] .-= dτ./(1.0 .+ dτ/dt).* diff(qy,dims=2)./dy
             #println(sqrt.(sum((dτ./(1.0 .+ dτ/dt).*((C[2:end-1,:] .- C_old[2:end-1,:])./dt .+ diff(qx,dims=1)./dx)).^2)))
             if iter%ncheck == 0
                 △yC = (diff(dc.*diff(C,dims=2)./dy,dims=2)./dy)[2:end-1,:]
@@ -58,10 +58,14 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
                 yscale=:log10,grid=true,markershape=:circle,markersize=10, title="error in peseudotimestep")
         display(plot(p1,p2;layout=(2,1)))
         next!(p)
+        #C[1:end-1] .-= dt.* max(vx,0) .*diff(C)./dx
+        #vx > 0 && (C[1] = C_old[1])
+        #C[2:end]   .-= dt.* min(vx,0) .*diff(C)./dx
+        #vx < 0 && (C[end] = C_old[end])
     end
-    anim
+    #gif(anim,"figs/l3e3.gif",fps=2)
 end
 
-an =  steady_diffusion_1D()
+steady_diffusion_1D()
 
-gif(an,"figs/l3e1.gif",fps=2)
+
