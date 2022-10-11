@@ -49,7 +49,7 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
             if iter%ncheck == 0
                 △yC = (diff(dc.*diff(C,dims=2)./dy,dims=2)./dy)[2:end-1,:]
                 △xC = (diff(dc.*diff(C,dims=1)./dx,dims=1)./dx)[:,2:end-1]
-                err = maximum(abs.(△yC .+ △xC )
+                err = maximum(abs.(△yC .+ △xC ))
                 push!(iter_evo,iter/nx); push!(err_evo,err)
             end
             iter += 1
