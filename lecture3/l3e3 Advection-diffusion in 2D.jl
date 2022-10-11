@@ -40,8 +40,8 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
         # iteration loop
         iter = 1; err = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
         while err >= ϵtol && iter <= maxiter
-            qx           .-= dτ./(ρ   .+ dτ/dc).*(qx./dc                                 .+ diff(C,dims=1) ./dx)
-            qy           .-= dτ./(ρ   .+ dτ/dc).*(qy./dc                                 .+ diff(C,dims=2) ./dy)
+            qx .-= dτ./(ρ .+ dτ/dc).*(qx./dc .+ diff(C,dims=1) ./dx)
+            qy .-= dτ./(ρ .+ dτ/dc).*(qy./dc .+ diff(C,dims=2) ./dy)
             # calculate timeveolution first 
             C[2:end-1,:] .-= dτ./(1.0 .+ dτ/dt).* diff(qx,dims=1)./dx
             C[:,2:end-1] .-= dτ./(1.0 .+ dτ/dt).* diff(qy,dims=2)./dy
@@ -49,7 +49,7 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
             if iter%ncheck == 0
                 △yC = (diff(dc.*diff(C,dims=2)./dy,dims=2)./dy)[2:end-1,:]
                 △xC = (diff(dc.*diff(C,dims=1)./dx,dims=1)./dx)[:,2:end-1]
-                err = maximum(abs.(△yC .+ △xC .- (C[2:end-1,2:end-1] .- C_old[2:end-1,2:end-1])./dt))
+                err = maximum(abs.(△yC .+ △xC )
                 push!(iter_evo,iter/nx); push!(err_evo,err)
             end
             iter += 1
