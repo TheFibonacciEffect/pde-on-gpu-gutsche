@@ -43,11 +43,9 @@ default(framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20
             qx           .-= dτ./(ρ   .+ dτ/dc).*(qx./dc                                 .+ diff(C,dims=1) ./dx)
             qy           .-= dτ./(ρ   .+ dτ/dc).*(qy./dc                                 .+ diff(C,dims=2) ./dy)
             # calculate timeveolution first 
-            diffxC = dτ./(1.0 .+ dτ/dt).*((C[2:end-1,:] .- C_old[2:end-1,:])./dt .+ diff(qx,dims=1)./dx)
-            diffyC = dτ./(1.0 .+ dτ/dt).*((C[:,2:end-1] .- C_old[:,2:end-1])./dt .+ diff(qy,dims=2)./dy)
-            C[2:end-1,:] .-= diffxC
-            C[:,2:end-1] .-= diffyC
-            println(sqrt.(sum((dτ./(1.0 .+ dτ/dt).*((C[2:end-1,:] .- C_old[2:end-1,:])./dt .+ diff(qx,dims=1)./dx)).^2)))
+            C[2:end-1,:] .-= dτ./(1.0 .+ dτ/dt).* diff(qx,dims=1)./dx
+            C[:,2:end-1] .-= dτ./(1.0 .+ dτ/dt).* diff(qy,dims=2)./dy
+            #println(sqrt.(sum((dτ./(1.0 .+ dτ/dt).*((C[2:end-1,:] .- C_old[2:end-1,:])./dt .+ diff(qx,dims=1)./dx)).^2)))
             if iter%ncheck == 0
                 △yC = (diff(dc.*diff(C,dims=2)./dy,dims=2)./dy)[2:end-1,:]
                 △xC = (diff(dc.*diff(C,dims=1)./dx,dims=1)./dx)[:,2:end-1]
