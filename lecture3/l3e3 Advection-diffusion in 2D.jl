@@ -4,6 +4,8 @@ using ProgressMeter
 default(size=(800,1200), framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @views function implicit_advection_diffusion_2D()
+    # visualisation option
+    advection = true
     # physics
     lx,ly   = 10.0,10.0
     dc      = 1.0
@@ -58,12 +60,20 @@ default(size=(800,1200), framestyle=:box,label=false,grid=false,margin=10mm,lw=6
                 yscale=:log10,grid=true,markershape=:circle,markersize=10)
         display(plot(p1,p2;layout=(2,1)))
         next!(p)
-        #C[1:end-1] .-= dt.* max(vx,0) .*diff(C)./dx
-        #vx > 0 && (C[1] = C_old[1])
-        #C[2:end]   .-= dt.* min(vx,0) .*diff(C)./dx
-        #vx < 0 && (C[end] = C_old[end])
+        if advection
+            # x direction
+            C[1:end-1,:] .-= dt.* max(vx,0) .*diff(C,dims=1)./dx
+            vx > 0 && (C[1,:] = C_old[1,:])
+            C[2:end,:]   .-= dt.* min(vx,0) .*diff(C,dims=1)./dx
+            vx < 0 && (C[end,:] = C_old[end,:])
+            # y direction
+            C[:,1:end-1] .-= dt.* max(vy,0) .*diff(C,dims=2)./dy
+            vy > 0 && (C[:,1] = C_old[:,1])
+            C[:,2:end]   .-= dt.* min(vy,0) .*diff(C,dims=2)./dy
+            vy < 0 && (C[:,end] = C_old[:,end])
+        end
     end
-    gif(anim,"lecture3/figs/l3e3.gif",fps=2)
+    gif(anim,"lecture3/figs/l3e3t2.gif",fps=2)
 end
 
 implicit_advection_diffusion_2D()
