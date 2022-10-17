@@ -28,31 +28,34 @@ default(size=(600*2,600),framestyle=:box,label=false,grid=false,margin=10mm,lw=6
     qDy      = zeros(nx,ny-1)
     # iteration loop
     iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
-    while err_Pf >= ϵtol && iter <= maxiter
-        # boundary conditions on the flux
-        if bounary
-            qDx[1,:]   .= 0
-            qDx[end,:] .= 0
-            qDx[:,1]   .= 0
-            qDx[:,end] .= 0
-            qDy[1,:]   .= 0
-            qDy[end,:] .= 0
-            qDy[:,1]   .= 0
-            qDy[:,end] .= 0
-        end
-        # differential equation
-        qDx .-= (qDx .+ k_ηf .* diff(Pf,dims=1)./dx)./(θ_dt .+ 1)
-        qDy .-= (qDy .+ k_ηf .* diff(Pf,dims=2)./dy)./(θ_dt .+ 1)
-        Pf[2:end-1,2:end-1] .-= (diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy)./β_dt
+    for it=1:10
+        while err_Pf >= ϵtol && iter <= maxiter
+            # boundary conditions on the flux
+            if bounary
+                qDx[1,:]   .= 0
+                qDx[end,:] .= 0
+                qDx[:,1]   .= 0
+                qDx[:,end] .= 0
+                qDy[1,:]   .= 0
+                qDy[end,:] .= 0
+                qDy[:,1]   .= 0
+                qDy[:,end] .= 0
+            end
+            # differential equation
+            qDx .-= (qDx .+ k_ηf .* diff(Pf,dims=1)./dx)./(θ_dt .+ 1)
+            qDy .-= (qDy .+ k_ηf .* diff(Pf,dims=2)./dy)./(θ_dt .+ 1)
+            Pf[2:end-1,2:end-1] .-= (diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy)./β_dt
 
-        if iter%ncheck == 0
-            r_Pf = diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy #fluid is incompressible
-            err_Pf = maximum(abs.(r_Pf))
-            push!(iter_evo,iter/nx); push!(err_evo,err_Pf)
-            p = heatmap(xc,yc,Pf',c=:turbo)
-            display(p)
+            if iter%ncheck == 0
+                r_Pf = diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy #fluid is incompressible
+                err_Pf = maximum(abs.(r_Pf))
+                push!(iter_evo,iter/nx); push!(err_evo,err_Pf)
+            end
+            iter += 1
         end
-        iter += 1
+        @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
+        p = heatmap(xc,yc,Pf',c=:turbo)
+        display(p)
     end
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
 end
