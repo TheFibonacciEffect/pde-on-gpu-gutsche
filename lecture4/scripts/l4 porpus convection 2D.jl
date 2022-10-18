@@ -16,6 +16,9 @@ function slice(A, dimension,direction, quantity=1)
     return Nothing        
 end
 
+@views avx(A) = (A[1:end-1,:] .+ A[2:end,:])./2
+@views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
+
 @views function porous_convection_2D(bounary,nvis)
     # physics
     lx      = 40.0
@@ -56,7 +59,7 @@ end
 
     # iteration loop
     iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
-    for it=1:10
+    for it=1:500
         while err_Pf >= ϵtol && iter <= maxiter
             # boundary conditions on the flux
             if bounary
@@ -70,8 +73,8 @@ end
                 qDy[:,end] .= 0
             end
             # diffusion equation
-            qDx .-= (qDx .+ k_ηf .* (diff(Pf,dims=1)./dx))./(θ_dt .+ 1)
-            qDy .-= (qDy .+ k_ηf .* diff(Pf,dims=2)./dy)./(θ_dt .+ 1)
+            qDx .-= (qDx .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
+            qDy .-= (qDy .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
             Pf[2:end-1,2:end-1] .-= (diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy)./β_dt
 
             if iter%ncheck == 0
@@ -115,14 +118,15 @@ end
         T[[1,end],:] .= T[[2,end-1],:]
         @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
         if it % nvis == 0
-            # qDxc  .= avx(qDx)
-            # qDyc  .= avy(qDy)
-            # qDmag .= sqrt.(qDxc.^2 .+ qDyc.^2)
+            # qDxc  = avx(qDx)
+            # qDyc  = avy(qDy)
+            # qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
             # qDxc  ./= qDmag
             # qDyc  ./= qDmag
             # qDx_p = qDxc[1:st:end,1:st:end]
             # qDy_p = qDyc[1:st:end,1:st:end]
-            p = heatmap(xc,yc,T';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            p1 = heatmap(xc,yc,Pf',title"Pf",xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            p2 = heatmap(xc,yc,T',title="T",xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             # display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
             display(p)
         end
@@ -130,4 +134,4 @@ end
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
 end
 
-porous_convection_2D(false,1)
+porous_convection_2D(false,10)
