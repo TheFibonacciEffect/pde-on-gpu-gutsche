@@ -1,6 +1,6 @@
 using Plots,Plots.Measures,Printf
 using ProgressMeter
-default(size=(600*2,600),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+default(size=(600*2,600*2),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @doc "this is kind of ad hoc"
 function slice(A, dimension,direction, quantity=1)
@@ -125,10 +125,11 @@ end
             # qDyc  ./= qDmag
             # qDx_p = qDxc[1:st:end,1:st:end]
             # qDy_p = qDyc[1:st:end,1:st:end]
-            p1 = heatmap(xc,yc,Pf',title"Pf",xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-            p2 = heatmap(xc,yc,T',title="T",xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            @infiltrate
+            p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             # display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
-            display(p)
+            display(plot(p1,p2,layout=(2,1)))
         end
     end
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
