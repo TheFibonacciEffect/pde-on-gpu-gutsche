@@ -19,6 +19,7 @@ end
 @views avx(A) = (A[1:end-1,:] .+ A[2:end,:])./2
 @views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
 
+
 @views function porous_convection_2D(bounary,nvis)
     # physics
     lx      = 40.0
@@ -48,7 +49,7 @@ end
     dt_diff   = min(dx,dy)^2/λ_ρCp/4.1
     # array initialisation
     # inital conditions
-    Pf       = @. exp(-(xc-lx/4)^2-(yc'-ly/4)^2); Pfi = copy(Pf)
+    Pf       = @. exp(-xc^2 - (yc'+ly/2)^2); Pfi = copy(Pf)
     T         = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2)
     T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
     # preallocations
@@ -57,10 +58,13 @@ end
     qTx      = zeros(nx-1,ny)
     qTy      = zeros(nx,ny-1)
 
-    # iteration loop
-    iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
-    for it=1:500
+    tit = 500
+    itvis = tit ÷ nvis
+    for it=1:tit
+        # iteration loop
+        iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
         while err_Pf >= ϵtol && iter <= maxiter
+            # println("($it,$iter)")
             # boundary conditions on the flux
             if bounary
                 qDx[1,:]   .= 0
@@ -89,13 +93,9 @@ end
         
         ∇xT = diff(T,dims=1)./dx
         ∇yT = diff(T,dims=2)./dy
-
-        @show size(qDy)
-        @show size(∇xT)
-        @show size(qDx)
-        @show size(max.(qDx,0).*∇xT)
         
         # T[2:end-1,2:end-1] .-= dt./ϕ.*(qDx.*∇xT + qDy.*∇yT) + dt.*λ_ρCp .* ∇²T
+        # eq. 7
         # advection
         # max operator for upwind
         T[2:end-1,2:end-1] .-= dt./ϕ.*(
@@ -109,27 +109,28 @@ end
         ∂²xT = diff(diff(T,dims=1),dims=1)[:,2:end-1]./dx./dx
         ∂²yT = diff(diff(T,dims=2),dims=2)[2:end-1,:]./dy./dy
         ∇²T = ∂²xT + ∂²yT
-        @show size(∂²xT)
-        @show size(∂²yT)
-        @show size(∇²T)
         
         T[2:end-1,2:end-1] .+= dt.*λ_ρCp .* ∇²T
         
         T[[1,end],:] .= T[[2,end-1],:]
-        @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
-        if it % nvis == 0
-            # qDxc  = avx(qDx)
-            # qDyc  = avy(qDy)
-            # qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
-            # qDxc  ./= qDmag
-            # qDyc  ./= qDmag
+        if it % itvis == 0
+            @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
+            st    = ceil(Int,nx/25)
+            qDxc  = avy(qDx)
+            qDyc  = avx(qDy)
+            qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
+            qDxc  ./= qDmag
+            qDyc  ./= qDmag
             # qDx_p = qDxc[1:st:end,1:st:end]
             # qDy_p = qDyc[1:st:end,1:st:end]
+            Xp = xc .* ones(size(yc))'
+            Yp = ones(size(xc)) .* yc'
             @infiltrate
             p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-            # display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
-            display(plot(p1,p2,layout=(2,1)))
+            p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
+            display(plot(p1,p2,p3,layout=(3,1)))
         end
     end
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
