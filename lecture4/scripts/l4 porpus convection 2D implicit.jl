@@ -124,8 +124,8 @@ end
         β_dτ_T  = (re_T*λ_ρCp)/(cfl*min(dx,dy)*max(lx,ly))
 
         # iteration loop
-        iter = 1; err_D = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
-        while err_D >= ϵtol && iter <= maxiter
+        iter = 1; err_D = 2ϵtol; err_T = 2ϵtol
+        while max(err_D,err_T) >= ϵtol && iter <= maxiter
             # println("($it,$iter)")
             # boundary conditions on the flux
             if bounary
@@ -142,31 +142,31 @@ end
             diffusion_eq!(qDx, k_ηf, Pf, dx, αρgx, T, θ_dt_D, qDy, dy, αρgy, β_dt_D)
 
             # temperature update
-            qTx            .-= ...
-            qTy            .-= ...
+            # Temperatur
+            qTx            .-= (qTx .+ λ_ρCp .* diff(T[:,2:end-1],dims=1)./dx)./(1.0 + θ_dτ_T)
+            qTy            .-= (qTy .+ λ_ρCp .* diff(T[2:end-1,:],dims=2)./dy)./(1.0 + θ_dτ_T)
+            dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1])./dt .+ (
+                                    max.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[1:end-1,2:end-1],dims=1)./dx .+
+                                    min.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[2:end,2:end-1],dims=1)./dx .+
+                                    max.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,1:end-1],dims=2)./dy .+
+                                    min.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,2:end],dims=2)./dy
+            )./ϕ .+ diff(qTx,dims=1)./dx .+ diff(qTy,dims=2)./dy
+            r_T .= (dTdt .+ diff(qTx,dims=1)./dx .+ diff(qTy,dims=2)./dy)
+            T[2:end-1,2:end-1] .-= r_T./(1.0/dt + β_dτ_T )
+            T[[1,end],:] .= T[[2,end-1],:]
             if iter%ncheck == 0
                 r_Pf = diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy #fluid is incompressible (continuity equation)
-                err_Pf = maximum(abs.(r_Pf))
-                push!(iter_evo,iter/nx); push!(err_evo,err_Pf)
+                err_D = maximum(abs.(r_Pf))
+                err_T  = maximum(abs.(r_T))
             end
             iter += 1
         end
-        
-        ∇xT = diff(T,dims=1)./dx
-        ∇yT = diff(T,dims=2)./dy
-        # eq. 7
-        # advection
-        advection!(T, dt, ϕ, max, qDx, ∇xT, min, qDy, ∇yT)     
-        # diffusion
-        temperature_diffusion!(T, dx, dy, dt, λ_ρCp)
-        
-        T[[1,end],:] .= T[[2,end-1],:]
         if it % itvis == 0
-            @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
+            @printf("it = %d, iter/nx=%.1f, err_D=%1.3e\n",it,iter/nx,err_D)
             plot_result!(qDxc, qDx, qDyc, qDy, qDmag, sqrt, st, xc, yc, Pf, it, T)
         end
     end every itvis
     return anim
 end
-a = porous_convection_2D(false,40,5)
-gif(a,"figs/l4e1t4.gif",fps=5)
+a = porous_convection_2D(false,40,500)
+gif(a,"figs/l4e1t4_implicit.gif",fps=15)
