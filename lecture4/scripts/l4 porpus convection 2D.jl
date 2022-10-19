@@ -22,16 +22,17 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
     nx      = 100
     ny      = 50
     ϵtol    = 1e-8
-    maxiter = 100nx
-    ncheck  = ceil(Int,0.25nx)
+    maxiter   = 100max(nx,ny)
+    ncheck    = ceil(Int,0.25max(nx,ny))
     cfl = 1/√2.1
     # derived numerics
-    dx      = lx/nx
-    dy      = ly/ny
-    xc      = LinRange(-lx/2 + dx/2,lx/2-dx/2,nx)
-    yc      = LinRange(-ly+dy/2,dy/2,ny)
-    θ_dt =max(lx,ly)/re/cfl/max(dx,dy)
-    β_dt = (re*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
+    dx        = lx/nx
+    dy        = ly/ny
+    xc        = LinRange(-lx/2 + dx/2,lx/2-dx/2,nx)
+    yc        = LinRange(-ly+dy/2,dy/2,ny)
+    θ_dt      = max(lx,ly)/re/cfl/min(dx,dy)
+    # θ_dt      = max(lx,ly)/re/cfl/max(dx,dy)
+    β_dt      = (re*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
     dt_diff   = min(dx,dy)^2/λ_ρCp/4.1
     # array initialisation
     # inital conditions
@@ -39,22 +40,17 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
     T         = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2)
     T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
     # preallocations
-    qDx      = zeros(nx+1,ny) #darcy flux
-    qDy      = zeros(nx,ny+1)
-    qTx      = zeros(nx-1,ny)
-    qTy      = zeros(nx,ny-1)
+    #darcy flux
+    st         = ceil(Int,nx/25)
+    qDx        = zeros(nx+1, ny)
+    qDx_center = zeros(nx, ny)
+    qDx_plot   = qDx_center[1:st:end,1:st:end]
+    qDy        = zeros(nx, ny+1)
+    qDy_center = zeros(nx, ny)
+    qDy_plot   = qDy_center[1:st:end,1:st:end]
+    qD_mag     = zeros(nx, ny)
 
-    st    = ceil(Int,nx/25)
-    qDx       = zeros(nx+1, ny)
-    qDxc      = zeros(nx, ny)
-    qDx_p     = qDxc[1:st:end,1:st:end]
-    qDy       = zeros(nx, ny+1)
-    qDyc      = zeros(nx, ny)
-    qDy_p     = qDyc[1:st:end,1:st:end]
-    qDmag     = zeros(nx, ny)
-
-
-    itvis = ceil(Int,timesteps/ nvis)
+    nvis = ceil(Int,timesteps/ nvis)
     anim = @animate for it=1:timesteps
         # iteration loop
         iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
@@ -72,9 +68,14 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
                 qDy[:,end] .= 0
             end
             # diffusion equation
-            qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
-            qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
-            Pf .-= (diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy)./β_dt
+            # qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
+            # qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
+            # Pf .-= (diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy)./β_dt
+
+            qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx .- αρgx.*avx(T)))./(1.0 + θ_dt)
+            qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy .- αρgy.*avy(T)))./(1.0 + θ_dt)
+            r_Pf            = diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy
+            Pf             .-= r_Pf./β_dt
 
             if iter%ncheck == 0
                 r_Pf = diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy #fluid is incompressible (continuity equation)
@@ -89,6 +90,11 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
         ∇xT = diff(T,dims=1)./dx
         ∇yT = diff(T,dims=2)./dy
         
+        # diffusion
+        ∂²xT = diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx
+        ∂²yT = diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy
+        T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*(∂²xT .+ ∂²yT)
+
         # T[2:end-1,2:end-1] .-= dt./ϕ.*(qDx.*∇xT + qDy.*∇yT) + dt.*λ_ρCp .* ∇²T
         # eq. 7
         # advection
@@ -104,30 +110,20 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
         # ∂²yT = diff(diff(T,dims=2),dims=2)[2:end-1,:]./dy./dy
         # ∇²T = ∂²xT + ∂²yT
 
-        ∂²xT = diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx
-        ∂²yT = diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy
-        T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*(∂²xT .+ ∂²yT) # diffusion
 
         # T[2:end-1,2:end-1] .+= dt.*λ_ρCp .* ∇²T
         
+        # update bounary condition
         T[[1,end],:] .= T[[2,end-1],:]
-        if it % itvis == 0
+        if it % nvis == 0
             @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
-            # qDxc  = avy(qDx)
-            # qDyc  = avx(qDy)
-            # qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
-            # qDxc  ./= qDmag
-            # qDyc  ./= qDmag
-            # qDx_p = qDxc[1:st:end,1:st:end]
-            # qDy_p = qDyc[1:st:end,1:st:end]
-
-            qDxc  .= avx(qDx)
-            qDyc  .= avy(qDy)
-            qDmag .= sqrt.(qDxc.^2 .+ qDyc.^2)
-            qDxc  ./= qDmag
-            qDyc  ./= qDmag
-            qDx_p = qDxc[1:st:end,1:st:end]
-            qDy_p = qDyc[1:st:end,1:st:end]
+            qDx_center  .= avx(qDx)
+            qDy_center  .= avy(qDy)
+            qD_mag .= sqrt.(qDx_center.^2 .+ qDy_center.^2)
+            qDx_center  ./= qD_mag
+            qDy_center  ./= qD_mag
+            qDx_plot .= qDx_center[1:st:end,1:st:end]
+            qDy_plot .= qDy_center[1:st:end,1:st:end]
 
             Xp = xc .* ones(size(yc))'
             Yp = ones(size(xc)) .* yc'
@@ -135,15 +131,15 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
             title!("pressure at $it")
             p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             title!("temperature at $it")
-            p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            p3 = heatmap(xc,yc,qD_mag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             title!("flux at $it")
-            quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
+            quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDx_center[1:st:end,1:st:end], qDy_center[1:st:end,1:st:end]), lw=0.5, c=:black)
             p = plot(p1,p2,p3,layout=(3,1))
             display(p)
         end
-    end every itvis
+    end every nvis
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
     return anim
 end
-a = porous_convection_2D(false,40,8)
+a = porous_convection_2D(false,20,500)
 gif(a,"figs/l4e1t4.gif",fps=15)
