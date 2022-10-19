@@ -41,6 +41,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     T         = @. ΔT/1.5*exp(-xc^2 - (yc'+ly/2)^2)
     T_old     = copy(T)
     T[:,1]   .= ΔT/2; T[:,end] .= -ΔT/2
+    T_old = zeros(nx,ny)
     dTdt        = zeros(nx-2,ny-2)
     r_T         = zeros(nx-2,ny-2)
     qTx         = zeros(nx-1,ny-2)
@@ -67,8 +68,8 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         θ_dτ_T  = max(lx,ly)/re_T/cfl/min(dx,dy)
         β_dτ_T  = (re_T*λ_ρCp)/(cfl*min(dx,dy)*max(lx,ly))
         # iteration loop
-        iter = 1; err_Pf = 2ϵtol; err_T = 2ϵtol
-        while max(err_Pf,err_T) >= ϵtol && iter <= maxiter
+        iter = 1; err_D = 2ϵtol; err_T = 2ϵtol
+        while max(err_D,err_T) >= ϵtol && iter <= maxiter
             # Darcy
             qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx .- αρgx.*avx(T)))./(1.0 + θ_dτ_D)
             qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy .- αρgy.*avy(T)))./(1.0 + θ_dτ_D)
@@ -87,14 +88,14 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
             T[2:end-1,2:end-1] .-= r_T./(1.0/dt + β_dτ_T )
             T[[1,end],:] .= T[[2,end-1],:]
             if iter % ncheck == 0
-                err_Pf  = maximum(abs.(r_Pf))
+                err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
-                @printf("  iter/nx=%.1f, err_Pf=%1.3e, err_T=%1.3e\n",iter/nx,err_Pf,err_T)
+                @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
             end
             iter += 1
         end
         # visualise
-        @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
+        @printf("it = %d, iter/nx=%.1f, err_D=%1.3e\n",it,iter/nx,err_D)
         if it % nvis == 0
             qDxc  .= avx(qDx)
             qDyc  .= avy(qDy)
