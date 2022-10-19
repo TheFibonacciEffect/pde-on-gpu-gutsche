@@ -41,8 +41,6 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
     # preallocations
     qDx      = zeros(nx+1,ny) #darcy flux
     qDy      = zeros(nx,ny+1)
-    qTx      = zeros(nx-1,ny)
-    qTy      = zeros(nx,ny-1)
 
     st    = ceil(Int,nx/25)
     qDx       = zeros(nx+1, ny)
@@ -88,39 +86,25 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
         
         ∇xT = diff(T,dims=1)./dx
         ∇yT = diff(T,dims=2)./dy
-        
-        # T[2:end-1,2:end-1] .-= dt./ϕ.*(qDx.*∇xT + qDy.*∇yT) + dt.*λ_ρCp .* ∇²T
         # eq. 7
         # advection
         # max operator for upwind
         T[2:end-1,2:end-1] .-= dt./ϕ .* (
-                                max.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[1:end-1,2:end-1],dims=1)./dx .+
-                                min.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[2:end,2:end-1],dims=1)./dx .+
-                                max.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,1:end-1],dims=2)./dy .+
-                                min.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,2:end],dims=2)./dy
+                                max.(0.0,qDx[2:end-2,2:end-1]) .* ∇xT[1:end-1,2:end-1] .+
+                                min.(0.0,qDx[2:end-2,2:end-1]) .* ∇xT[2:end,2:end-1] .+
+                                max.(0.0,qDy[2:end-1,2:end-2]) .* ∇yT[2:end-1,1:end-1] .+
+                                min.(0.0,qDy[2:end-1,2:end-2]) .* ∇yT[2:end-1,2:end]
         )        
-        # diffusion
-        # ∂²xT = diff(diff(T,dims=1),dims=1)[:,2:end-1]./dx./dx
-        # ∂²yT = diff(diff(T,dims=2),dims=2)[2:end-1,:]./dy./dy
-        # ∇²T = ∂²xT + ∂²yT
 
+        # diffusion
         ∂²xT = diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx
         ∂²yT = diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy
-        T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*(∂²xT .+ ∂²yT) # diffusion
-
-        # T[2:end-1,2:end-1] .+= dt.*λ_ρCp .* ∇²T
+        ∇²T = ∂²xT + ∂²yT
+        T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*∇²T # diffusion
         
         T[[1,end],:] .= T[[2,end-1],:]
         if it % itvis == 0
             @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
-            # qDxc  = avy(qDx)
-            # qDyc  = avx(qDy)
-            # qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
-            # qDxc  ./= qDmag
-            # qDyc  ./= qDmag
-            # qDx_p = qDxc[1:st:end,1:st:end]
-            # qDy_p = qDyc[1:st:end,1:st:end]
-
             qDxc  .= avx(qDx)
             qDyc  .= avy(qDy)
             qDmag .= sqrt.(qDxc.^2 .+ qDyc.^2)
@@ -142,7 +126,6 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
             display(p)
         end
     end every itvis
-    # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
     return anim
 end
 a = porous_convection_2D(false,40,500)
