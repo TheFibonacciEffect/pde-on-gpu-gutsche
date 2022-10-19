@@ -58,7 +58,7 @@ end
     qTx      = zeros(nx-1,ny)
     qTy      = zeros(nx,ny-1)
 
-    it_t = 300
+    it_t = 8
     itvis = ceil(Int,it_t/ nvis)
     anim = @animate for it=1:it_t
         # iteration loop
@@ -126,11 +126,13 @@ end
             Xp = xc .* ones(size(yc))'
             Yp = ones(size(xc)) .* yc'
             p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            title!("pressure at $it")
             p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            title!("temperature at $it")
             p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            title!("flux at $it")
             quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
             p = plot(p1,p2,p3,layout=(3,1))
-            title!("pressure, temperature, flux at $it")
             display(p)
         end
     end every itvis
@@ -138,4 +140,4 @@ end
     return anim
 end
 a = porous_convection_2D(false,40)
-gif(a,fps=3)
+gif(a,"figs/l4e1t4.gif",fps=15)
