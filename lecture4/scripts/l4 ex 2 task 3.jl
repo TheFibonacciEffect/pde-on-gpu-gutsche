@@ -1,6 +1,6 @@
 using Plots,Plots.Measures,Printf
 using ProgressMeter
-default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+default(size=(600*2,600),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @views avx(A) = (A[1:end-1,:] .+ A[2:end,:])./2
 @views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
@@ -44,14 +44,13 @@ function plot_result!(qDxc, qDx, qDyc, qDy, qDmag, sqrt, st, xc, yc, Pf, it, T)
     
     Xp = xc .* ones(size(yc))'
     Yp = ones(size(xc)) .* yc'
-    p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-    title!("pressure at $it")
-    p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+    # p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+    # title!("pressure at $it")
+    p = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
     title!("temperature at $it")
-    p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-    title!("flux at $it")
-    quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
-    p = plot(p2,p1,p3,layout=(3,1))
+    # p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+    # title!("flux at $it")
+    quiver!(p,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
     display(p)    
 end
 
@@ -169,5 +168,6 @@ end
     return anim
 end
 for Ra = [10, 40, 100, 1000]
-    a = porous_convection_2D(Ra,40,500)
-    gif(a,"figs/task3/implicit at Ra=$Ra.gif",fps=15)
+    ani = porous_convection_2D(Ra,10,250)
+    gif(ani,"figs/task3/implicit at Ra=$Ra.gif",fps=15)
+end
