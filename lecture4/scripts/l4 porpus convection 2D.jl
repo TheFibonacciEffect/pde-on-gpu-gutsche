@@ -60,7 +60,7 @@ end
 
     tit = 500
     itvis = tit ÷ nvis
-    for it=1:tit
+    anim = @animate for it=1:tit
         # iteration loop
         iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
         while err_Pf >= ϵtol && iter <= maxiter
@@ -132,8 +132,9 @@ end
             quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
             display(plot(p1,p2,p3,layout=(3,1)))
         end
-    end
+    end every itvis
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
+    return anim
 end
-
-porous_convection_2D(false,10)
+a = porous_convection_2D(false,10)
+gif(a,fps=1)
