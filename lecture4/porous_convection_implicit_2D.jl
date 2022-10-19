@@ -4,6 +4,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
 @views avx(A) = (A[1:end-1,:] .+ A[2:end,:])./2
 @views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
 
+
 @views function porous_convection_2D()
     # physics
     lx        = 40.0
