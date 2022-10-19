@@ -22,7 +22,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     nt        = 500
     ϵtol      = 1e-8
     maxiter   = 100max(nx,ny)
-    ncheck    = ceil(Int,0.25max(nx,ny))
+    ncheck    = 300
     nvis      = 10
     cfl       = 1.0/sqrt(2.1)
     # derived numerics
@@ -59,9 +59,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
             Pf             .-= r_Pf./β_dτ
             if iter%ncheck == 0
                 err_Pf = maximum(abs.(r_Pf))
-                #p1 = heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]), ylims=(yc[1],yc[end]), aspect_ratio=1,
-                #        xlabel="lx",ylabel="ly",title="iter/nx=$(round(iter/nx,sigdigits=3))",c=:turbo)
-                # @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
+                @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
             end
             iter += 1
         end
@@ -70,18 +68,12 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         dt     = min(dt_diff,dt_adv)
         # update temperatur
         T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*(diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx .+ diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy) # diffusion
-        #T[2:end,:] .-= dt./ϕ.* (max.(0.0,qDx[2:end-1,:]) .* diff(T,dims=1)./dx)
-        #T[1:end-1,:] .-= dt./ϕ.* (min.(0.0,qDx[2:end-1,:]) .* diff(T,dims=1)./dx)
-        #T[:,2:end] .-= dt./ϕ.* (max.(0.0,qDy[:,2:end-1]) .* diff(T,dims=2)./dy)
-        #T[:,1:end-1] .-= dt./ϕ.* (min.(0.0,qDy[:,2:end-1]) .* diff(T,dims=2)./dy)
         T[2:end-1,2:end-1] .-= dt./ϕ .* (
                                 max.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[1:end-1,2:end-1],dims=1)./dx .+
                                 min.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[2:end,2:end-1],dims=1)./dx .+
                                 max.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,1:end-1],dims=2)./dy .+
                                 min.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,2:end],dims=2)./dy
         )
-        #T[:,1]   .= ΔT/2; T[:,end] .= -ΔT/2
-        #T[2:end-1,2:end-1] .-= dt./ϕ.*(avx(qDx[2:end-1,2:end-1].*diff(T[:,2:end-1],dims=1)./dx) .+ avy(qDy[2:end-1,2:end-1].*diff(T[2:end-1,:],dims=2)./dy)) # advection
         # update adiabatic boundary condition
         T[[1,end],:] .= T[[2,end-1],:]
         @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)

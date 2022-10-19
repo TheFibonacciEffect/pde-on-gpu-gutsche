@@ -1,8 +1,8 @@
 using Plots,Plots.Measures,Printf
 default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
-@views avx(A) = A[1:end-1,:] .+ A[2:end,:]./2
-@views avy(A) = A[:,1:end-1] .+ A[:,2:end]./2
+@views avx(A) = (A[1:end-1,:] .+ A[2:end,:])./2
+@views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
 
 @views function porous_convection_2D()
     # physics
@@ -22,7 +22,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     nt        = 500
     ϵtol      = 1e-8
     maxiter   = 100max(nx,ny)
-    ncheck    = ceil(Int,max(nx,ny))
+    ncheck    = 300
     nvis      = 10
     cfl       = 1.0/sqrt(2.1)
     # derived numerics
@@ -39,6 +39,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
     Xp, Yp    = Xc[1:st:end,1:st:end], Yc[1:st:end,1:st:end]
     # array initialisation
     T         = @. ΔT/1.5*exp(-xc^2 - (yc'+ly/2)^2)
+    T_old     = copy(T)
     T[:,1]   .= ΔT/2; T[:,end] .= -ΔT/2
     dTdt        = zeros(nx-2,ny-2)
     r_T         = zeros(nx-2,ny-2)
@@ -67,7 +68,7 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
         β_dτ_T  = (re_T*λ_ρCp)/(cfl*min(dx,dy)*max(lx,ly))
         # iteration loop
         iter = 1; err_Pf = 2ϵtol; err_T = 2ϵtol
-        while max(err_D,err_T) >= ϵtol && iter <= maxiter
+        while max(err_Pf,err_T) >= ϵtol && iter <= maxiter
             # Darcy
             qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx .- αρgx.*avx(T)))./(1.0 + θ_dτ_D)
             qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy .- αρgy.*avy(T)))./(1.0 + θ_dτ_D)
@@ -81,14 +82,14 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
                                     min.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[2:end,2:end-1],dims=1)./dx .+
                                     max.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,1:end-1],dims=2)./dy .+
                                     min.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,2:end],dims=2)./dy
-            )./ϕ .+ diff(qTx,dims=1)./dx .+ diff(qTy,dims=2)./dy
-            r_T .= (dTdt .+ a)
+            )./ϕ 
+            r_T .= (dTdt .+ diff(qTx,dims=1)./dx .+ diff(qTy,dims=2)./dy)
             T[2:end-1,2:end-1] .-= r_T./(1.0/dt + β_dτ_T )
             T[[1,end],:] .= T[[2,end-1],:]
             if iter % ncheck == 0
                 err_Pf  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
-                @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
+                @printf("  iter/nx=%.1f, err_Pf=%1.3e, err_T=%1.3e\n",iter/nx,err_Pf,err_T)
             end
             iter += 1
         end
@@ -102,11 +103,11 @@ default(size=(1200,800),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,
             qDyc  ./= qDmag
             qDx_p = qDxc[1:st:end,1:st:end]
             qDy_p = qDyc[1:st:end,1:st:end]
-            heatmap(xc,yc,T';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            heatmap(xc,yc,T';title = "Ra=$(Ra)",xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
         end
     end
-    gif(anim,"docs/l4e1t5.gif";fps=50)
+    gif(anim,"docs/l4e2t3Ra$(Ra).gif";fps=50)
 end
 
 porous_convection_2D()
