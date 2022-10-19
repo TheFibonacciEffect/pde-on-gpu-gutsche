@@ -1,6 +1,6 @@
 using Plots,Plots.Measures,Printf
 using ProgressMeter
-default(size=(600*2,600*2),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
+default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
 @doc "this is kind of ad hoc"
 function slice(A, dimension,direction, quantity=1)
@@ -33,8 +33,8 @@ end
     Ra        = 100
     λ_ρCp     = 1/Ra*(αρg*k_ηf*ΔT*ly/ϕ) # Ra = αρg*k_ηf*ΔT*ly/λ_ρCp/ϕ
     # numerics
-    nx      = 200
-    ny      = 100
+    nx      = 100
+    ny      = 50
     ϵtol    = 1e-8
     maxiter = 100nx
     ncheck  = ceil(Int,0.25nx)
@@ -49,7 +49,7 @@ end
     dt_diff   = min(dx,dy)^2/λ_ρCp/4.1
     # array initialisation
     # inital conditions
-    Pf       = @. exp(-xc^2 - (yc'+ly/2)^2); Pfi = copy(Pf)
+    Pf       = zeros(nx,ny)
     T         = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2)
     T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
     # preallocations
@@ -58,9 +58,9 @@ end
     qTx      = zeros(nx-1,ny)
     qTy      = zeros(nx,ny-1)
 
-    tit = 500
-    itvis = tit ÷ nvis
-    anim = @animate for it=1:tit
+    it_t = 300
+    itvis = ceil(Int,it_t/ nvis)
+    anim = @animate for it=1:it_t
         # iteration loop
         iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
         while err_Pf >= ϵtol && iter <= maxiter
@@ -125,16 +125,17 @@ end
             # qDy_p = qDyc[1:st:end,1:st:end]
             Xp = xc .* ones(size(yc))'
             Yp = ones(size(xc)) .* yc'
-            @infiltrate
             p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
-            display(plot(p1,p2,p3,layout=(3,1)))
+            p = plot(p1,p2,p3,layout=(3,1))
+            title!("pressure, temperature, flux at $it")
+            display(p)
         end
     end every itvis
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
     return anim
 end
-a = porous_convection_2D(false,10)
-gif(a,fps=1)
+a = porous_convection_2D(false,40)
+gif(a,fps=3)
