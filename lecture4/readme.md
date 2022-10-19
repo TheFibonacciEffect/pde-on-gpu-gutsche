@@ -12,3 +12,5 @@ The final result for task 5
 ## Task 2
 ![l3e2t2](figs/l4e1t4_implicit.gif)
 Interestingly it seems that in 500 timesteps more time passed in the explicit than in the implicit approach. But I thought that implicit approaches would allow for a larger timestep?
+
+## Task 3
