@@ -2,25 +2,11 @@ using Plots,Plots.Measures,Printf
 using ProgressMeter
 default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=20,tickfontsize=20,titlefontsize=24)
 
-@doc "this is kind of ad hoc"
-function slice(A, dimension,direction, quantity=1)
-    if dimension==2
-        quantity == 1 && direction=='l' && return A[:,1:end-1]
-        quantity == 1 && direction=='r' && return A[:,2:end]
-    elseif dimension==1
-        quantity == 1 && direction=='l' && return A[1:end-1,:]
-        quantity == 1 && direction=='r' && return A[2:end,:]
-    else
-        quantity == 2 && return A[2:end-1,:]
-    end
-    return Nothing        
-end
-
 @views avx(A) = (A[1:end-1,:] .+ A[2:end,:])./2
 @views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
 
 
-@views function porous_convection_2D(bounary,nvis)
+@views function porous_convection_2D(bounary,nvis,timesteps)
     # physics
     lx      = 40.0
     ly      = 20.0
@@ -53,14 +39,23 @@ end
     T         = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2)
     T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
     # preallocations
-    qDx      = zeros(nx-1,ny) #darcy flux
-    qDy      = zeros(nx,ny-1)
+    qDx      = zeros(nx+1,ny) #darcy flux
+    qDy      = zeros(nx,ny+1)
     qTx      = zeros(nx-1,ny)
     qTy      = zeros(nx,ny-1)
 
-    it_t = 8
-    itvis = ceil(Int,it_t/ nvis)
-    anim = @animate for it=1:it_t
+    st    = ceil(Int,nx/25)
+    qDx       = zeros(nx+1, ny)
+    qDxc      = zeros(nx, ny)
+    qDx_p     = qDxc[1:st:end,1:st:end]
+    qDy       = zeros(nx, ny+1)
+    qDyc      = zeros(nx, ny)
+    qDy_p     = qDyc[1:st:end,1:st:end]
+    qDmag     = zeros(nx, ny)
+
+
+    itvis = ceil(Int,timesteps/ nvis)
+    anim = @animate for it=1:timesteps
         # iteration loop
         iter = 1; err_Pf = 2ϵtol; iter_evo = Float64[]; err_evo = Float64[]
         while err_Pf >= ϵtol && iter <= maxiter
@@ -77,12 +72,12 @@ end
                 qDy[:,end] .= 0
             end
             # diffusion equation
-            qDx .-= (qDx .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
-            qDy .-= (qDy .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
-            Pf[2:end-1,2:end-1] .-= (diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy)./β_dt
+            qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
+            qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
+            Pf .-= (diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy)./β_dt
 
             if iter%ncheck == 0
-                r_Pf = diff(qDx[:,2:end-1],dims=1)./dx + diff(qDy[2:end-1,:],dims=2)./dy #fluid is incompressible (continuity equation)
+                r_Pf = diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy #fluid is incompressible (continuity equation)
                 err_Pf = maximum(abs.(r_Pf))
                 push!(iter_evo,iter/nx); push!(err_evo,err_Pf)
             end
@@ -98,31 +93,42 @@ end
         # eq. 7
         # advection
         # max operator for upwind
-        T[2:end-1,2:end-1] .-= dt./ϕ.*(
-              (max.(qDx,0).*∇xT)[2:end,2:end-1]
-            + (min.(qDx,0).*∇xT)[1:end-1,2:end-1]
-            + (max.(qDy,0).*∇yT)[2:end-1,2:end]
-            + (min.(qDy,0).*∇yT)[2:end-1,1:end-1]
-            )
-        
+        T[2:end-1,2:end-1] .-= dt./ϕ .* (
+                                max.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[1:end-1,2:end-1],dims=1)./dx .+
+                                min.(0.0,qDx[2:end-2,2:end-1]) .* diff(T[2:end,2:end-1],dims=1)./dx .+
+                                max.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,1:end-1],dims=2)./dy .+
+                                min.(0.0,qDy[2:end-1,2:end-2]) .* diff(T[2:end-1,2:end],dims=2)./dy
+        )        
         # diffusion
-        ∂²xT = diff(diff(T,dims=1),dims=1)[:,2:end-1]./dx./dx
-        ∂²yT = diff(diff(T,dims=2),dims=2)[2:end-1,:]./dy./dy
-        ∇²T = ∂²xT + ∂²yT
-        
-        T[2:end-1,2:end-1] .+= dt.*λ_ρCp .* ∇²T
+        # ∂²xT = diff(diff(T,dims=1),dims=1)[:,2:end-1]./dx./dx
+        # ∂²yT = diff(diff(T,dims=2),dims=2)[2:end-1,:]./dy./dy
+        # ∇²T = ∂²xT + ∂²yT
+
+        ∂²xT = diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx
+        ∂²yT = diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy
+        T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*(∂²xT .+ ∂²yT) # diffusion
+
+        # T[2:end-1,2:end-1] .+= dt.*λ_ρCp .* ∇²T
         
         T[[1,end],:] .= T[[2,end-1],:]
         if it % itvis == 0
             @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
-            st    = ceil(Int,nx/25)
-            qDxc  = avy(qDx)
-            qDyc  = avx(qDy)
-            qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
-            qDxc  ./= qDmag
-            qDyc  ./= qDmag
+            # qDxc  = avy(qDx)
+            # qDyc  = avx(qDy)
+            # qDmag = sqrt.(qDxc.^2 .+ qDyc.^2)
+            # qDxc  ./= qDmag
+            # qDyc  ./= qDmag
             # qDx_p = qDxc[1:st:end,1:st:end]
             # qDy_p = qDyc[1:st:end,1:st:end]
+
+            qDxc  .= avx(qDx)
+            qDyc  .= avy(qDy)
+            qDmag .= sqrt.(qDxc.^2 .+ qDyc.^2)
+            qDxc  ./= qDmag
+            qDyc  ./= qDmag
+            qDx_p = qDxc[1:st:end,1:st:end]
+            qDy_p = qDyc[1:st:end,1:st:end]
+
             Xp = xc .* ones(size(yc))'
             Yp = ones(size(xc)) .* yc'
             p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
@@ -139,5 +145,5 @@ end
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
     return anim
 end
-a = porous_convection_2D(false,40)
+a = porous_convection_2D(false,40,8)
 gif(a,"figs/l4e1t4.gif",fps=15)
