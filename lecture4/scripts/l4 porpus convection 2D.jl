@@ -16,7 +16,7 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
     αρg       = sqrt(αρgx^2+αρgy^2)
     ΔT        = 200.0
     ϕ         = 0.1
-    Ra        = 100
+    Ra        = 1000
     λ_ρCp     = 1/Ra*(αρg*k_ηf*ΔT*ly/ϕ) # Ra = αρg*k_ηf*ΔT*ly/λ_ρCp/ϕ
     # numerics
     nx      = 100
@@ -145,5 +145,5 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
     # p2 = plot(iter_evo,err_evo;xlabel="iter/nx",ylabel="err",yscale=:log10,grid=true,markershape=:circle,markersize=10)
     return anim
 end
-a = porous_convection_2D(false,40,8)
+a = porous_convection_2D(false,40,500)
 gif(a,"figs/l4e1t4.gif",fps=15)
