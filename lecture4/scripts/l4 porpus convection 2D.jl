@@ -6,6 +6,57 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
 @views avy(A) = (A[:,1:end-1] .+ A[:,2:end])./2
 
 
+function diffusion_eq!(qDx, k_ηf, Pf, dx, αρgx, T, θ_dt, qDy, dy, αρgy, β_dt)
+    qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
+    qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
+    Pf .-= (diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy)./β_dt
+end
+
+
+function advection!(T, dt, ϕ, max, qDx, ∇xT, min, qDy, ∇yT)
+    # max operator for upwind
+    T[2:end-1,2:end-1] .-= dt./ϕ .* (
+                            max.(0.0,qDx[2:end-2,2:end-1]) .* ∇xT[1:end-1,2:end-1] .+
+                            min.(0.0,qDx[2:end-2,2:end-1]) .* ∇xT[2:end,2:end-1] .+
+                            max.(0.0,qDy[2:end-1,2:end-2]) .* ∇yT[2:end-1,1:end-1] .+
+                            min.(0.0,qDy[2:end-1,2:end-2]) .* ∇yT[2:end-1,2:end]
+    )        
+    
+end
+
+
+function temperature_diffusion!(T, dx, dy, dt, λ_ρCp)
+    ∂²xT = diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx
+    ∂²yT = diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy
+    ∇²T = ∂²xT + ∂²yT
+    T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*∇²T # diffusion
+end
+
+
+function plot_result!(qDxc, qDx, qDyc, qDy, qDmag, sqrt, st, xc, yc, Pf, it, T)
+    qDxc  .= avx(qDx)
+    qDyc  .= avy(qDy)
+    qDmag .= sqrt.(qDxc.^2 .+ qDyc.^2)
+    qDxc  ./= qDmag
+    qDyc  ./= qDmag
+    qDx_p = qDxc[1:st:end,1:st:end]
+    qDy_p = qDyc[1:st:end,1:st:end]
+    
+    Xp = xc .* ones(size(yc))'
+    Yp = ones(size(xc)) .* yc'
+    p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+    title!("pressure at $it")
+    p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+    title!("temperature at $it")
+    p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+    title!("flux at $it")
+    quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
+    p = plot(p2,p1,p3,layout=(3,1))
+    display(p)    
+end
+
+
+
 @views function porous_convection_2D(bounary,nvis,timesteps)
     # physics
     lx      = 40.0
@@ -70,9 +121,7 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
                 qDy[:,end] .= 0
             end
             # diffusion equation
-            qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf .* diff(Pf,dims=1)./dx .- αρgx.*avx(T))./(θ_dt .+ 1)
-            qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf .* diff(Pf,dims=2)./dy .- αρgy.*avy(T))./(θ_dt .+ 1)
-            Pf .-= (diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy)./β_dt
+            diffusion_eq!(qDx, k_ηf, Pf, dx, αρgx, T, θ_dt, qDy, dy, αρgy, β_dt)
 
             if iter%ncheck == 0
                 r_Pf = diff(qDx,dims=1)./dx + diff(qDy,dims=2)./dy #fluid is incompressible (continuity equation)
@@ -88,42 +137,14 @@ default(size=(600*2,600*3),framestyle=:box,label=false,grid=false,margin=10mm,lw
         ∇yT = diff(T,dims=2)./dy
         # eq. 7
         # advection
-        # max operator for upwind
-        T[2:end-1,2:end-1] .-= dt./ϕ .* (
-                                max.(0.0,qDx[2:end-2,2:end-1]) .* ∇xT[1:end-1,2:end-1] .+
-                                min.(0.0,qDx[2:end-2,2:end-1]) .* ∇xT[2:end,2:end-1] .+
-                                max.(0.0,qDy[2:end-1,2:end-2]) .* ∇yT[2:end-1,1:end-1] .+
-                                min.(0.0,qDy[2:end-1,2:end-2]) .* ∇yT[2:end-1,2:end]
-        )        
-
+        advection!(T, dt, ϕ, max, qDx, ∇xT, min, qDy, ∇yT)     
         # diffusion
-        ∂²xT = diff(diff(T[:,2:end-1],dims=1)./dx,dims=1)./dx
-        ∂²yT = diff(diff(T[2:end-1,:],dims=2)./dy,dims=2)./dy
-        ∇²T = ∂²xT + ∂²yT
-        T[2:end-1,2:end-1] .+= dt.*λ_ρCp.*∇²T # diffusion
+        temperature_diffusion!(T, dx, dy, dt, λ_ρCp)
         
         T[[1,end],:] .= T[[2,end-1],:]
         if it % itvis == 0
             @printf("it = %d, iter/nx=%.1f, err_Pf=%1.3e\n",it,iter/nx,err_Pf)
-            qDxc  .= avx(qDx)
-            qDyc  .= avy(qDy)
-            qDmag .= sqrt.(qDxc.^2 .+ qDyc.^2)
-            qDxc  ./= qDmag
-            qDyc  ./= qDmag
-            qDx_p = qDxc[1:st:end,1:st:end]
-            qDy_p = qDyc[1:st:end,1:st:end]
-
-            Xp = xc .* ones(size(yc))'
-            Yp = ones(size(xc)) .* yc'
-            p1 = heatmap(xc,yc,Pf',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-            title!("pressure at $it")
-            p2 = heatmap(xc,yc,T',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-            title!("temperature at $it")
-            p3 = heatmap(xc,yc,qDmag',xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-            title!("flux at $it")
-            quiver!(p3,Xp[1:st:end,1:st:end], Yp[1:st:end,1:st:end], quiver=(qDxc[1:st:end,1:st:end], qDyc[1:st:end,1:st:end]), lw=0.5, c=:black)
-            p = plot(p1,p2,p3,layout=(3,1))
-            display(p)
+            plot_result!(qDxc, qDx, qDyc, qDy, qDmag, sqrt, st, xc, yc, Pf, it, T)
         end
     end every itvis
     return anim
