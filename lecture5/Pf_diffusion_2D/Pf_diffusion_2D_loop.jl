@@ -2,39 +2,7 @@
 using Plots,Plots.Measures,Printf
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
-macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy]) ) end
-macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
-
-@inbounds function compute_flux!(qDx, k_ηf, Pf, _dx, _1_θ_dτ, qDy, _dy)
-    nx,ny=size(Pf)
-    for iy=1:ny
-        for ix=1:nx-1
-            qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf*((@d_xa(Pf)*_dx)))*_1_θ_dτ
-        end
-    end
-    for iy=1:ny-1
-        for ix=1:nx
-            qDy[ix,iy+1] -= (qDy[ix,iy+1] + k_ηf*((@d_ya(Pf))*_dy))*_1_θ_dτ
-        end
-    end
-end
-    
-@inbounds function update_Pf!(Pf, qDx, _dx, qDy, _dy, _β_dτ)
-    nx,ny=size(Pf)
-    for iy=1:ny
-        for ix=1:nx
-            Pf[ix,iy]  -= ((qDx[ix+1,iy]-qDx[ix,iy])*_dx + (qDy[ix,iy+1]-qDy[ix,iy])*_dy)*_β_dτ
-        end
-    end
-end
-
-function compute!(qDx, k_ηf, Pf, _dx, _1_θ_dτ, qDy, _dy, _β_dτ)
-    compute_flux!(qDx, k_ηf, Pf, _dx, _1_θ_dτ, qDy, _dy)
-    update_Pf!(Pf, qDx, _dx, qDy, _dy, _β_dτ)
-    return nothing
-end
-
-function Pf_diffusion_2D_optimized_loop_fun(;do_check=false)
+function Pf_diffusion_2D_optimized(;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -59,7 +27,6 @@ function Pf_diffusion_2D_optimized_loop_fun(;do_check=false)
     _1_θ_dτ = 1.0./(1.0 + θ_dτ)
     _dx, _dy = 1.0/dx, 1.0/dy
     _β_dτ = 1.0/β_dτ
-    
     # performance evaluation
     t_tic = 0.0
     # iteration loop
@@ -67,7 +34,21 @@ function Pf_diffusion_2D_optimized_loop_fun(;do_check=false)
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if iter == 11 t_tic = Base.time(); niter = 0; end
-        compute!(qDx, k_ηf, Pf, _dx, _1_θ_dτ, qDy, _dy, _β_dτ)
+        for iy=1:ny
+            for ix=1:nx-1
+                qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf*((Pf[ix+1,iy]-Pf[ix,iy])*_dx))*_1_θ_dτ
+            end
+        end
+        for iy=1:ny-1
+            for ix=1:nx
+                qDy[ix,iy+1] -= (qDy[ix,iy+1] + k_ηf*((Pf[ix,iy+1]-Pf[ix,iy])*_dy))*_1_θ_dτ
+            end
+        end
+        for iy=1:ny
+            for ix=1:nx
+                Pf[ix,iy]  -= ((qDx[ix+1,iy]-qDx[ix,iy])*_dx + (qDy[ix,iy+1]-qDy[ix,iy])*_dy)*_β_dτ
+            end
+        end
         if do_check && iter%ncheck == 0
             r_Pf  .= diff(qDx,dims=1).*_dx .+ diff(qDy,dims=2).*_dy
             err_Pf = maximum(abs.(r_Pf))
@@ -85,7 +66,8 @@ function Pf_diffusion_2D_optimized_loop_fun(;do_check=false)
     @printf("Time = %1.3f sec \n", t_toc)
     @printf("T_eff = %1.3f GB/sec \n", T_eff)
     @printf("niter = %1.3f \n", niter)
+    
     return
 end
 
-Pf_diffusion_2D_optimized_loop_fun(;do_check=false)
+Pf_diffusion_2D_optimized(;do_check=false)
