@@ -1,7 +1,7 @@
 using Plots,Plots.Measures,Printf
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
-function Pf_diffusion_2D(;do_check=false)
+function Pf_diffusion_2D()
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -21,30 +21,21 @@ function Pf_diffusion_2D(;do_check=false)
     Pf      = @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2)
     qDx,qDy = zeros(Float64, nx+1,ny),zeros(Float64, nx,ny+1)
     r_Pf    = zeros(nx,ny)
-    # performance evaluation
-    t_tic = 0.0
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
-    t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx))./(1.0 + θ_dτ)
         qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy))./(1.0 + θ_dτ)
         Pf             .-= (diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy)./β_dτ
-        if do_check && iter%ncheck == 0
+        if iter%ncheck == 0
             r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy
             err_Pf = maximum(abs.(r_Pf))
             @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
-            display(heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo,clim=(0,1)))
+            display(heatmap(xc,yc,Pf';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
         end
         iter += 1
     end
-    A_eff = 3*2*nx*ny*sizeof(eltype(Pf))/1e9   # Effective main memory access per iteration [GB]
-    t_it  = t_toc/niter                        # Execution time per iteration [s]
-    T_eff = A_eff/t_it                         # Effective memory throughput [GB/s]
-    @printf("Time = %1.3f sec \n", t_toc)
-    @printf("T_eff = %1.3f GB/sec \n", T_eff)
-    @printf("niter = %1.3f \n", niter)
     return
 end
 
-Pf_diffusion_2D(;do_check=false)
+Pf_diffusion_2D()
