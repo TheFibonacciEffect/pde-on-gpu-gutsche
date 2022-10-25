@@ -1,4 +1,3 @@
-# TODO physics computations in compute!() function, derivatives done with macros, and multi-threading
 using Plots,Plots.Measures,Printf
 using BenchmarkTools
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
