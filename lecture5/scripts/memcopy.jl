@@ -34,14 +34,14 @@ end
 
 function compute_kp!(C2,C,A)
     nx,ny = size(C2)
-    for ix ∈ 1:nx
+    Threads.@threads for ix ∈ 1:nx
         for iy ∈ 1:ny
             C2[ix,iy] = C[ix,iy] + A[ix,iy]
         end
     end
 end
 
-function memcopy(;do_check=false,bench=:loop)
+function memcopy(f;do_check=false,bench=:loop)
     # Numerics
     nx, ny  = 512, 512
     nt      = 2e4
@@ -58,7 +58,7 @@ function memcopy(;do_check=false,bench=:loop)
     if bench==:loop
     for iter=1:nt
         if iter == 11 t_tic = Base.time(); niter = 0; end
-        compute_ap!(C2,C,A)
+        f(C2,C,A)
         if do_check && iter%ncheck == 0
             r_Pf  .= diff(qDx,dims=1).*_dx .+ diff(qDy,dims=2).*_dy
             err_Pf = maximum(abs.(r_Pf))
@@ -70,19 +70,21 @@ function memcopy(;do_check=false,bench=:loop)
     end
     t_toc = Base.time() - t_tic
     elseif bench == :btool
-        t_toc = @belapsed compute_ap!($C2,$C,$A)
+        (f == compute_kp!) && (t_toc = @belapsed compute_kp!($C2,$C,$A))
+        (f == compute_ap!) && (t_toc = @belapsed compute_ap!($C2,$C,$A))
         niter = 1
     end
-    # read and write qDx, qDy and Pf --> 3 * read-write --> 3*2
-    A_eff = 3*2*nx*ny*sizeof(eltype(C2))/1e9   # Effective main memory access per iteration [GB]
+    # read 2, write 1
+    A_eff = 3*nx*ny*sizeof(eltype(C2))/1e9   # Effective main memory access per iteration [GB]
     t_it  = t_toc/niter                        # Execution time per iteration [s]
     T_eff = A_eff/t_it                         # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec \n", t_toc)
     @printf("Time iter = %1.3f sec \n", t_it)
     @printf("T_eff = %1.3f GB/sec \n", T_eff)
     @printf("niter = %1.3f \n", niter)
-    @infiltrate
 end
 
-memcopy(;do_check=false,bench = :btool)
-memcopy(;do_check=false,bench = :loop)
+memcopy(compute_kp!;do_check=false,bench = :btool)
+memcopy(compute_kp!;do_check=false,bench = :btool)
+memcopy(compute_ap!;do_check=false,bench = :loop)
+memcopy(compute_ap!;do_check=false,bench = :loop)
