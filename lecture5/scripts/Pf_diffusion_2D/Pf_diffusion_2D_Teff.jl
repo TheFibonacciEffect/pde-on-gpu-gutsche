@@ -1,15 +1,11 @@
-# TODO T_eff implementation
-
 using Plots,Plots.Measures,Printf
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
-function Pf_diffusion_2D_optimized(;do_check=false)
+function Pf_diffusion_2D_Teff(nx,ny;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
     # numerics
-    # nx,ny   = 127,127
-    nx,ny   = 1023,1023
     ϵtol    = 1e-8
     maxiter = 1e2#10max(nx,ny)
     ncheck  = 10#ceil(Int,0.25max(nx,ny))
@@ -35,21 +31,9 @@ function Pf_diffusion_2D_optimized(;do_check=false)
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if iter == 11 t_tic = Base.time(); niter = 0; end
-        for iy=1:ny
-            for ix=1:nx-1
-                qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf*((Pf[ix+1,iy]-Pf[ix,iy])*_dx))*_1_θ_dτ
-            end
-        end
-        for iy=1:ny-1
-            for ix=1:nx
-                qDy[ix,iy+1] -= (qDy[ix,iy+1] + k_ηf*((Pf[ix,iy+1]-Pf[ix,iy])*_dy))*_1_θ_dτ
-            end
-        end
-        for iy=1:ny
-            for ix=1:nx
-                Pf[ix,iy]  -= ((qDx[ix+1,iy]-qDx[ix,iy])*_dx + (qDy[ix,iy+1]-qDy[ix,iy])*_dy)*_β_dτ
-            end
-        end
+        qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx))./(1.0 + θ_dτ)
+        qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy))./(1.0 + θ_dτ)
+        Pf             .-= (diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy)./β_dτ
         if do_check && iter%ncheck == 0
             r_Pf  .= diff(qDx,dims=1).*_dx .+ diff(qDy,dims=2).*_dy
             err_Pf = maximum(abs.(r_Pf))
@@ -68,7 +52,5 @@ function Pf_diffusion_2D_optimized(;do_check=false)
     @printf("T_eff = %1.3f GB/sec \n", T_eff)
     @printf("niter = %1.3f \n", niter)
     
-    return
+    return T_eff
 end
-
-Pf_diffusion_2D_optimized(;do_check=false)

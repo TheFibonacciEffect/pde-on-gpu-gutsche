@@ -67,7 +67,7 @@ function Pf_diffusion_2D_optimized(;do_check=false)
     @printf("T_eff = %1.3f GB/sec \n", T_eff)
     @printf("niter = %1.3f \n", niter)
     
-    return
+    return T_eff
 end
 
 Pf_diffusion_2D_optimized(;do_check=false)

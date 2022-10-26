@@ -35,7 +35,7 @@ function Pf_diffusion_2D()
         end
         iter += 1
     end
-    return
+    return T_eff
 end
 
 Pf_diffusion_2D()

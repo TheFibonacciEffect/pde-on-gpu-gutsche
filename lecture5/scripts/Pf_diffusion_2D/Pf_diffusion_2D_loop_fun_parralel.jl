@@ -33,13 +33,11 @@ function compute!(qDx, k_ηf, Pf, _dx, _1_θ_dτ, qDy, _dy, _β_dτ)
     return nothing
 end
 
-function Pf_diffusion_2D_loop_fun_parralel(;do_check=false)
+function Pf_diffusion_2D_loop_fun_parralel(nx,ny;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
     # numerics
-    # nx,ny   = 127,127
-    nx,ny   = 1023,1023
     ϵtol    = 1e-8
     maxiter = 1e2#10max(nx,ny)
     ncheck  = 10#ceil(Int,0.25max(nx,ny))
@@ -84,7 +82,5 @@ function Pf_diffusion_2D_loop_fun_parralel(;do_check=false)
     @printf("Time = %1.3f sec \n", t_toc)
     @printf("T_eff = %1.3f GB/sec \n", T_eff)
     @printf("niter = %1.3f \n", niter)
-    return
+    return T_eff  
 end
-
-Pf_diffusion_2D_loop_fun_parralel(;do_check=false)
