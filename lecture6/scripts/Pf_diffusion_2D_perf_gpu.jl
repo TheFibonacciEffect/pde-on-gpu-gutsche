@@ -89,6 +89,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     re      = 2π
     threads = (32,8)
     blocks  = (nx÷threads[1], ny÷threads[2])
+    s       = rand()
     # derived numerics
     dx,dy   = lx/nx,ly/ny
     xc,yc   = LinRange(dx/2,lx-dx/2,nx),LinRange(dy/2,ly-dy/2,ny)
@@ -104,10 +105,14 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     Pf_gpu      = CuArray(@. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2))
     qDx_gpu,qDy_gpu = CUDA.zeros(Float64, nx+1,ny),CUDA.zeros(Float64, nx,ny+1)
     r_Pf_gpu    = CUDA.zeros(nx,ny)
+    A = CUDA.rand(Float64, nx, ny)
+    B = CUDA.rand(Float64, nx, ny)
+    C = CUDA.rand(Float64, nx, ny)
     # cpu arrays
     Pf       = @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2)
     qDx,qDy  = zeros(Float64, nx+1,ny),zeros(Float64, nx,ny+1)
     r_Pf     = zeros(nx,ny)
+    
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
     t_tic = 0.0; niter = 0
@@ -131,6 +136,11 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     T_eff = A_eff/t_it                       # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
 
+
+    # find T_peak
+    t_it = @belapsed begin @cuda blocks=$blocks threads=$threads memcopy_triad_KP!($A, $B, $C, $s); synchronize() end
+    T_peak = 3*1/1e9*nx*ny*sizeof(Float64)/t_it
+    
     if do_test
         @testset "Pf_diffusion_2D" begin
             @test Pf ≈ Pf_gpu atol=0.1
