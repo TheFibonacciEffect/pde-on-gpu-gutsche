@@ -1,4 +1,5 @@
 using Plots,Plots.Measures,Printf, CUDA, Test
+using LinearAlgebra
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
 macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
@@ -132,7 +133,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
 
     if do_test
         @testset "Pf_diffusion_2D" begin
-            @test Pf ≈ Array(Pf_gpu) atol=1e-8
+            @test Pf ≈ Pf_gpu atol=0.1
         end
     end
 
