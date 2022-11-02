@@ -1,5 +1,6 @@
 using Plots,Plots.Measures,Printf, CUDA, Test
-using LinearAlgebra
+using BenchmarkTools
+
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
 macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
@@ -83,12 +84,13 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     nx,ny   = 127,127
     ϵtol    = 1e-8
     maxiter = 50
-    ncheck  = ceil(Int,0.25max(nx,ny))
+    ncheck  = 10
     ntest   = 50
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
     threads = (32,8)
     blocks  = (nx÷threads[1], ny÷threads[2])
+    s       = rand()
     # derived numerics
     dx,dy   = lx/nx,ly/ny
     xc,yc   = LinRange(dx/2,lx-dx/2,nx),LinRange(dy/2,ly-dy/2,ny)
@@ -104,6 +106,9 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     Pf_gpu      = CuArray(@. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2))
     qDx_gpu,qDy_gpu = CUDA.zeros(Float64, nx+1,ny),CUDA.zeros(Float64, nx,ny+1)
     r_Pf_gpu    = CUDA.zeros(nx,ny)
+    A = CUDA.rand(Float64, nx, ny)
+    B = CUDA.rand(Float64, nx, ny)
+    C = CUDA.rand(Float64, nx, ny)
     # cpu arrays
     Pf       = @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2)
     qDx,qDy  = zeros(Float64, nx+1,ny),zeros(Float64, nx,ny+1)
@@ -117,9 +122,16 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
         compute_gpu!(qDx_gpu,qDy_gpu,Pf_gpu,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ, threads, blocks)
         compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
         if do_check && (iter%ncheck == 0)
+            # make animation directory
+            ENV["GKSwstype"]="nul"
+            if isdir("viz_out")==false mkdir("viz_out") end
+            loadpath = "./viz_out/"; anim = Animation(loadpath,String[])
+            println("Animation directory: $(anim.dir)")
+            # compute error
             r_Pf_gpu  .= diff(qDx_gpu,dims=1).*_dx .+ diff(qDy_gpu,dims=2).*_dy # leave r_Pf on GPU
             err_Pf = maximum(abs.(r_Pf_gpu))
             @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
+            # plot
             display(heatmap(xc,yc,Array(Pf_gpu)';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
         end
         iter += 1; niter += 1
@@ -130,10 +142,15 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     t_it  = t_toc/niter                      # Execution time per iteration [s]
     T_eff = A_eff/t_it                       # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
+
+
+    # find T_peak
+    t_it = @belapsed begin @cuda blocks=$blocks threads=$threads memcopy_triad_KP!($A, $B, $C, $s); synchronize() end
+    T_peak = 3*1/1e9*nx*ny*sizeof(Float64)/t_it
     
     if do_test
         @testset "Pf_diffusion_2D" begin
-            @test Pf ≈ Pf_gpu atol=0.1
+            @test Pf ≈ Array(Pf_gpu) atol=0.1
         end
     end
 
