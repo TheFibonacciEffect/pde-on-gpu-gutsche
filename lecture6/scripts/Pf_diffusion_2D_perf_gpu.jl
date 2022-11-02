@@ -76,7 +76,7 @@ function compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
     return nothing
 end
 
-function Pf_diffusion_2D(;do_check=false, do_test=false)
+function Pf_diffusion_2D(;plotting=false, do_test=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
@@ -117,22 +117,18 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
     t_tic = 0.0; niter = 0
+    # make animation directory
+    ENV["GKSwstype"]="nul"
+    if isdir("viz_out")==false mkdir("viz_out") end
+    loadpath = "./viz_out/"; anim = Animation(loadpath,String[])
+    println("Animation directory: $(anim.dir)")
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
         compute_gpu!(qDx_gpu,qDy_gpu,Pf_gpu,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ, threads, blocks)
         compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
-        if do_check && (iter%ncheck == 0)
-            # make animation directory
-            ENV["GKSwstype"]="nul"
-            if isdir("viz_out")==false mkdir("viz_out") end
-            loadpath = "./viz_out/"; anim = Animation(loadpath,String[])
-            println("Animation directory: $(anim.dir)")
-            # compute error
-            r_Pf_gpu  .= diff(qDx_gpu,dims=1).*_dx .+ diff(qDy_gpu,dims=2).*_dy # leave r_Pf on GPU
-            err_Pf = maximum(abs.(r_Pf_gpu))
-            @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
-            # plot
-            display(heatmap(xc,yc,Array(Pf_gpu)';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
+        if plotting && (iter%ncheck == 0)
+            p = heatmap(xc,yc,Array(Pf_gpu)';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            savefig(p,"viz_out/$iter.png")
         end
         iter += 1; niter += 1
     end
@@ -174,6 +170,6 @@ function Triad!()
      return T_peak
 end
 
-Pf_diffusion_2D(do_check=false,do_test=true)
+Pf_diffusion_2D(plotting=true,do_test=true)
 
 Triad!()
