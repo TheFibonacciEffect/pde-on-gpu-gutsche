@@ -38,9 +38,9 @@ function Pf_diffusion_2D(;do_check=false)
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
     # numerics
-    nx,ny   = 511,511
+    nx,ny   = 127,127
     ϵtol    = 1e-8
-    maxiter = max(nx,ny)
+    maxiter = 50
     ncheck  = ceil(Int,0.25max(nx,ny))
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
