@@ -114,13 +114,28 @@ function Triad!()
 end
 
 # get data for weak scaling
-ni      = []
-T_eff   = []
-nx = ny = 32 .* 2 .^ (0:8) .- 1
-T_peak  = Triad!()
+function main()
+    ni      = []
+    T_eff   = []
+    nx = ny = 32 .* 2 .^ (0:8) .- 1
+    T_peak  = Triad!()
 
-for i=1:size(nx)[1]
-    push!(ni, nx[i]*ny[i])
-    push!(T_eff,Pf_diffusion_2D(nx[i],ny[i];do_check=false))
+    for i=1:size(nx)[1]
+        push!(ni, nx[i]*ny[i])
+        push!(T_eff,Pf_diffusion_2D(nx[i],ny[i];do_check=false))
+    end
+
+    #plot the results
+    plt = plot(ni,T_eff,[ni[1],ni[end]],T_peak,
+        title = "Effective memory throughput Tesla P100",
+        xlabel="nx*ny",
+        ylabel="T_eff [GB/s]",
+        xaxis=:log,
+        yaxis=:log,
+        marker = 2,
+        markershape=:circle,
+        markersize=10
+    )
+    return
 end
 
