@@ -1,0 +1,1 @@
+The code for the diffusion equation using a GPU Kernel was able to use $95.4 %$ of the effective memory throughput of the Tesla P100 GPU.
