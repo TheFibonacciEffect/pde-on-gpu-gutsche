@@ -1,9 +1,18 @@
-using Plots,Plots.Measures,Printf, CUDA
+using Plots,Plots.Measures,Printf, CUDA, Test
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
 macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
 macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
 
+# triad Benchmark kernel
+@inbounds function memcopy_triad_KP!(A, B, C, s)
+    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
+    iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
+    A[ix,iy] = B[ix,iy] + s*C[ix,iy]
+    return nothing
+end
+
+# compute fluxes
 function compute_flux_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
     nx,ny=size(Pf)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
@@ -17,12 +26,13 @@ function compute_flux_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
     return nothing
 end
 
-function update_Pf_gpu!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
+# pressure update
+function update_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
     nx,ny=size(Pf)
     ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
     iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
     if (ix<=nx && iy<=ny)
-        Pf[ix,iy]  -= (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ
+        Pf[ix,iy]  -= @d_xa(qDx)*_dx_β_dτ + @d_ya(qDy)*_dy_β_dτ
     end
     return nothing
 end
@@ -84,8 +94,8 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     β_dτ    = (re*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
     _1_θ_dτ = 1.0/(1.0 + θ_dτ)
     _β_dτ   = 1.0/(β_dτ)
-    _dx_β_dτ = 1/dx/_β_dτ
-    _dx,_dy = 1.0/dx,1.0/dy
+    _dx_β_dτ = 1.0/dx/_β_dτ
+    _dx_β_dτ = 1.0/dy/_β_dτ
     k_ηf_dx,k_ηf_dy = k_ηf/dx,k_ηf/dy
     # array initialisation
     # gpu arrays
@@ -122,8 +132,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
 
     if do_test
-        Pf_cpu = Array(Pf_gpu)
-
+        @test all(Pf_cpu ≈ Array(Pf_gpu))
     end
 
     return
