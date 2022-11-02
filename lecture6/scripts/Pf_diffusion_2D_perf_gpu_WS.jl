@@ -1,5 +1,12 @@
 using Plots,Plots.Measures,Printf, CUDA, Test
+
+# initilaize plotting
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
+ENV["GKSwstype"]="nul"
+if isdir("viz_out")==false mkdir("viz_out") end
+loadpath = "./viz_out/"; anim = Animation(loadpath,String[])
+println("Animation directory: $(anim.dir)")
+
 
 macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
 macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
@@ -139,3 +146,5 @@ function main()
     return
 end
 
+
+main()
