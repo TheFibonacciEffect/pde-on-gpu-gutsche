@@ -37,9 +37,9 @@ function update_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
     return nothing
 end
 
-function compute_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
-    compute_flux_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-    compute_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
+function compute_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ, threads, blocks)
+    CUDA.@sync @cuda blocks=blocks threads=threads compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+    CUDA.@sync @cuda blocks=blocks threads=threads  compute_Pf!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
     return nothing
 end
 
@@ -69,8 +69,8 @@ function compute_Pf!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
 end
 
 function compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
-    compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-    compute_Pf!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
+    compute_flux_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+    compute_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
     return nothing
 end
 
@@ -112,7 +112,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
-        CUDA.@sync @cuda blocks=blocks threads=threads compute_gpu!(qDx_gpu,qDy_gpu,Pf_gpu,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
+        compute_gpu!(qDx_gpu,qDy_gpu,Pf_gpu,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ, threads, blocks)
         compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
         if do_check && (iter%ncheck == 0)
             Pf_cpu = Array(Pf_gpu)
@@ -132,7 +132,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
 
     if do_test && iter % ntest == 0
-        @test all(Pf_cpu ≈ Array(Pf_gpu)), atol=1e-8
+        @test Pf_cpu ≈ Array(Pf_gpu) atol=1e-8
     end
 
     return
