@@ -84,6 +84,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     β_dτ    = (re*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
     _1_θ_dτ = 1.0/(1.0 + θ_dτ)
     _β_dτ   = 1.0/(β_dτ)
+    _dx_β_dτ = 1/dx/_β_dτ
     _dx,_dy = 1.0/dx,1.0/dy
     k_ηf_dx,k_ηf_dy = k_ηf/dx,k_ηf/dy
     # array initialisation
@@ -119,6 +120,12 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     t_it  = t_toc/niter                      # Execution time per iteration [s]
     T_eff = A_eff/t_it                       # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
+
+    if do_test
+        Pf_cpu = Array(Pf_gpu)
+
+    end
+
     return
 end
 
