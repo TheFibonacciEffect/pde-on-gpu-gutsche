@@ -109,7 +109,6 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     r_Pf     = zeros(nx,ny)
     # iteration loop
     iter = 1; err_Pf = 2ϵtol
-    nout = 50
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
