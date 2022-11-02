@@ -83,6 +83,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     ϵtol    = 1e-8
     maxiter = 50
     ncheck  = ceil(Int,0.25max(nx,ny))
+    ntest   = 50
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
     threads = (32,8)
@@ -95,7 +96,7 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     _1_θ_dτ = 1.0/(1.0 + θ_dτ)
     _β_dτ   = 1.0/(β_dτ)
     _dx_β_dτ = 1.0/dx/_β_dτ
-    _dx_β_dτ = 1.0/dy/_β_dτ
+    _dy_β_dτ = 1.0/dy/_β_dτ
     k_ηf_dx,k_ηf_dy = k_ηf/dx,k_ηf/dy
     # array initialisation
     # gpu arrays
@@ -131,8 +132,8 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     T_eff = A_eff/t_it                       # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
 
-    if do_test
-        @test all(Pf_cpu ≈ Array(Pf_gpu))
+    if do_test && iter % ntest == 0
+        @test all(Pf_cpu ≈ Array(Pf_gpu)), atol=1e-8
     end
 
     return
