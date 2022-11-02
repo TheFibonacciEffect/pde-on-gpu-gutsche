@@ -115,11 +115,10 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
         compute_gpu!(qDx_gpu,qDy_gpu,Pf_gpu,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ, threads, blocks)
         compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
         if do_check && (iter%ncheck == 0)
-            Pf_cpu = Array(Pf_gpu)
             r_Pf_gpu  .= diff(qDx_gpu,dims=1).*_dx .+ diff(qDy_gpu,dims=2).*_dy # leave r_Pf on GPU
             err_Pf = maximum(abs.(r_Pf_gpu))
             @printf("  iter/nx=%.1f, err_Pf=%1.3e\n",iter/nx,err_Pf)
-            display(heatmap(xc,yc,Pf_cpu';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
+            display(heatmap(xc,yc,Array(Pf_gpu)';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo))
         end
         iter += 1; niter += 1
     end
@@ -131,8 +130,10 @@ function Pf_diffusion_2D(;do_check=false, do_test=false)
     T_eff = A_eff/t_it                       # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.3f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
 
-    if do_test && iter % ntest == 0
-        @test Pf_cpu ≈ Array(Pf_gpu) atol=1e-8
+    if do_test
+        @testset "Pf_diffusion_2D" begin
+            @test Pf ≈ Array(Pf_gpu) atol=1e-8
+        end
     end
 
     return
