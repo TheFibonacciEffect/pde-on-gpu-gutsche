@@ -1,7 +1,7 @@
 using Plots,Plots.Measures,Printf, CUDA, Test
 
 # initilaize plotting
-default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
+default(size=(600,500),grid=true,framestyle=:box,margin=10mm,lw=3,labelfontsize=11,tickfontsize=11,titlefontsize=16,xaxis=:log,yaxis=:log)
 ENV["GKSwstype"]="nul"
 if isdir("viz_out")==false mkdir("viz_out") end
 loadpath = "./viz_out/"; anim = Animation(loadpath,String[])
@@ -104,7 +104,7 @@ end
 
 function Triad!()
     # numerics
-    nx,ny   = 127,127
+    nx,ny   = 32*2^6,32*2^6
     threads = (32,8)
     blocks  = (nx÷threads[1], ny÷threads[2])
     s       = rand()
@@ -123,8 +123,8 @@ end
 function main()
     ni      = []
     T_eff   = []
-    nx = ny = 32 .* 2 .^ (0:8) .- 1
-    T_peak  = Triad!()
+    nx = ny = 32 .* 2 .^ (1:8) .- 1
+    @show T_peak  = Triad!()
 
     for i=1:size(nx)[1]
         push!(ni, nx[i]*ny[i])
@@ -132,16 +132,16 @@ function main()
     end
 
     #plot the results
-    plt = plot(ni,T_eff,[ni[1],ni[end]],T_peak,
+    plt = plot(ni,T_eff,
         title = "Effective memory throughput Tesla P100",
         xlabel="nx*ny",
         ylabel="T_eff [GB/s]",
-        xaxis=:log,
-        yaxis=:log,
         marker = 2,
         markershape=:circle,
         markersize=10
     )
+    hline!([T_peak],linestyle=:dash, label="T_peak")
+    savefig("e3t4 weak scaling.png")
     return
 end
 
