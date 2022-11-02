@@ -38,8 +38,8 @@ function update_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
 end
 
 function compute_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ, threads, blocks)
-    CUDA.@sync @cuda blocks=blocks threads=threads compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-    CUDA.@sync @cuda blocks=blocks threads=threads  compute_Pf!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
+    CUDA.@sync @cuda blocks=blocks threads=threads compute_flux_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+    CUDA.@sync @cuda blocks=blocks threads=threads  update_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
     return nothing
 end
 
@@ -69,8 +69,8 @@ function compute_Pf!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
 end
 
 function compute!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ,_dx_β_dτ,_dy_β_dτ)
-    compute_flux_gpu!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-    compute_Pf_gpu!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
+    compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+    compute_Pf!(Pf,qDx,qDy,_dx_β_dτ,_dy_β_dτ)
     return nothing
 end
 
