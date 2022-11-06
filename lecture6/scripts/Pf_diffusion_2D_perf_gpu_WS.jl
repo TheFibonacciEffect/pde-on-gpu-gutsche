@@ -1,3 +1,4 @@
+# weak scaling
 using Plots,Plots.Measures,Printf, CUDA, Test
 
 # initilaize plotting
