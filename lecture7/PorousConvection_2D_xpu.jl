@@ -26,20 +26,38 @@ end
 end
 
 @parallel function update_temperature_flux(qTx, λ_ρCp, T, _dx, θ_dτ_T, qTy, _dy)
-    @all(qTx)            =@all(qTx) - (@all(qTx) + λ_ρCp.*(@d_xi(T)*_dx))./(1.0 + θ_dτ_T)
-    @all(qTy)            =@all(qTy) - (@all(qTy) + λ_ρCp.*(@d_yi(T)*_dy))./(1.0 + θ_dτ_T)
+    @all(qTx) = @all(qTx) - (@all(qTx) + λ_ρCp.*(@d_xi(T)*_dx))./(1.0 + θ_dτ_T)
+    @all(qTy) = @all(qTy) - (@all(qTy) + λ_ρCp.*(@d_yi(T)*_dy))./(1.0 + θ_dτ_T)
     return
 end
+
+
+
+# @parallel_indices (i,j) function (T, T_old, dt, max, qDx, _dx, min, qDy, _dy, ϕ)
+# nx,ny = size(T)
+# (1<i<nx && 1<j<ny) && (dTdt[i,j] =    (T[i,j] - T_old[i,j])/dt +
+#                     (max(qDx[i,j],0.0)*@d_xa(T[1:end-1,2:end-1])*_dx +
+#                     min(qDx[i+1,j],0.0)*@d_xa(T[2:end  ,2:end-1],dims=1)*_dx +
+#                     max(qDy[i,j-1],0.0)*@d_ya(T[2:end-1,1:end-1])*_dy +
+#                     min(qDy[i,j+1],0.0)*@d_ya(T[2:end-1,2:end])*_dy)/ϕ)
+# # (i<nx && j<ny) && ( @inn(T) = @inn(T)- ((dTdt + Diff(qTx, dims = 1) *_dx) + Diff(qTy, dims = 2) *_dy) ./ (1.0 / dt + β_dτ_T))
+
+# return
+# end
+
+
+
+@parallel function temperature_update!(T,dTdt,qTx,qTy,_dx,_dy,β_dτ_T,dt)
+    @inn(T) = @inn(T)- ((@all(dTdt) + @d_xa(qTx) * _dx) + @d_ya(qTy) * _dy) / (1.0 / dt + β_dτ_T)
+    return
+end
+
+
+
 
 @parallel_indices (iy) function bc_x!(A)
     A[1  ,iy] = A[2    ,iy]
     A[end,iy] = A[end-1,iy]
-    return
-end
-
-@parallel_indices (ix) function bc_y!(A)
-    A[ix  ,1] = A[ix    ,1]
-    A[ix,end] = A[ix,end-1]
     return
 end
 
@@ -76,7 +94,8 @@ end
     qDx,qDy     = zeros(nx+1,ny),zeros(nx,ny+1)
     qDx_c,qDy_c = zeros(nx,ny),zeros(nx,ny)
     qDmag       = zeros(nx,ny)     
-    T           = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2); T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
+    T           = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2); 
+    T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
     T_old       = copy(T)
     dTdt        = zeros(nx-2,ny-2)
     r_T         = zeros(nx-2,ny-2)
@@ -112,11 +131,10 @@ end
                                  min.(qDx[3:end-1,2:end-1],0.0).*Diff(T[2:end  ,2:end-1],dims=1)./dx .+
                                  max.(qDy[2:end-1,2:end-2],0.0).*Diff(T[2:end-1,1:end-1],dims=2)./dy .+
                                  min.(qDy[2:end-1,3:end-1],0.0).*Diff(T[2:end-1,2:end  ],dims=2)./dy)./ϕ
-            T[2:end-1,2:end-1] .-= (dTdt .+ Diff(qTx,dims=1)./dx .+ Diff(qTy,dims=2)./dy)./(1.0/dt + β_dτ_T)
+            @parallel temperature_update!(T,dTdt,qTx,qTy,_dx,_dy,β_dτ_T,dt)
             #T[[1,end],:]        .= T[[2,end-1],:]
             # Periodic boundary condition
             @parallel (1:size(T,2)) bc_x!(T)
-            @parallel (1:size(T,1)) bc_y!(T)
             if iter % ncheck == 0
                 r_Pf  .= Diff(qDx,dims=1)./dx .+ Diff(qDy,dims=2)./dy
                 r_T   .= dTdt .+ Diff(qTx,dims=1)./dx .+ Diff(qTy,dims=2)./dy
