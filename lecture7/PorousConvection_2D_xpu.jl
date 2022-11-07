@@ -1,8 +1,47 @@
 using Printf,LazyArrays,Plots
 
+const USE_GPU = false
+using ParallelStencil
+using ParallelStencil.FiniteDifferences2D
+@static if USE_GPU
+    @init_parallel_stencil(CUDA, Float64, 2)
+else
+    @init_parallel_stencil(Threads, Float64, 2)
+end
+
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
 @views avx(A) = 0.5.*(A[1:end-1,:].+A[2:end,:])
 @views avy(A) = 0.5.*(A[:,1:end-1].+A[:,2:end])
+
+
+@parallel function compute_flux!(qDx,qDy,Pf,T,k_ηf,_dx,_dy,αρgx,αρgy,θ_dτ_D)
+    @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf*(@d_xa(Pf)*_dx - αρgx*@av_xa(T)))/(1.0 + θ_dτ_D)
+    @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf*(@d_ya(Pf)*_dy - αρgy*@av_ya(T)))/(1.0 + θ_dτ_D)
+    return nothing
+end
+
+@parallel function update_Pf!(Pf,qDx,qDy,_dx,_dy,β_dτ_D)
+    @all(Pf) = @all(Pf) - (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)./β_dτ_D
+    return nothing
+end
+
+@parallel function update_temperature_flux(qTx, λ_ρCp, T, _dx, θ_dτ_T, qTy, _dy)
+    @all(qTx)            =@all(qTx) - (@all(qTx) + λ_ρCp.*(@d_xi(T)*_dx))./(1.0 + θ_dτ_T)
+    @all(qTy)            =@all(qTy) - (@all(qTy) + λ_ρCp.*(@d_yi(T)*_dy))./(1.0 + θ_dτ_T)
+    return
+end
+
+@parallel_indices (iy) function bc_x!(A)
+    A[1  ,iy] = A[2    ,iy]
+    A[end,iy] = A[end-1,iy]
+    return
+end
+
+@parallel_indices (ix) function bc_y!(A)
+    A[ix  ,1] = A[ix    ,1]
+    A[ix,end] = A[ix,end-1]
+    return
+end
 
 @views function porous_convection_2D()
     # physics
@@ -12,20 +51,21 @@ using Printf,LazyArrays,Plots
     αρg         = sqrt(αρgx^2+αρgy^2)
     ΔT          = 200.0
     ϕ           = 0.1
-    Ra          = 100
+    Ra          = 1000
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*ly/ϕ) # Ra = αρg*k_ηf*ΔT*ly/λ_ρCp/ϕ
     # numerics
-    nx          = 127#200
-    ny          = ceil(Int,nx*ly/lx)
+    ny          = 63
+    nx          = 2*(ny+1)-1
     nt          = 500
     re_D        = 4π
     cfl         = 1.0/sqrt(2.1)
     maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
     nvis        = 20
-    ncheck      = ceil(0.25max(nx,ny))
+    ncheck      = ceil(max(nx,ny))
     # preprocessing
     dx,dy       = lx/nx,ly/ny
+    _dx,_dy       = 1.0/dx,1.0/dy
     xn,yn       = LinRange(-lx/2,lx/2,nx+1),LinRange(-ly,0,ny+1)
     xc,yc       = av1(xn),av1(yn)
     θ_dτ_D      = max(lx,ly)/re_D/cfl/min(dx,dy)
@@ -51,7 +91,7 @@ using Printf,LazyArrays,Plots
     for it = 1:nt
         T_old .= T
         # time step
-        dt = if it == 1 
+        dt = if it == 1
             0.1*min(dx,dy)/(αρg*ΔT*k_ηf)
         else
             min(5.0*min(dx,dy)/(αρg*ΔT*k_ηf),ϕ*min(dx/maximum(abs.(qDx)), dy/maximum(abs.(qDy)))/2.1)
@@ -63,19 +103,20 @@ using Printf,LazyArrays,Plots
         iter = 1; err_D = 2ϵtol; err_T = 2ϵtol
         while max(err_D,err_T) >= ϵtol && iter <= maxiter
             # hydro
-            qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(Diff(Pf,dims=1)./dx .- αρgx.*avx(T)))./(1.0 + θ_dτ_D)
-            qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(Diff(Pf,dims=2)./dy .- αρgy.*avy(T)))./(1.0 + θ_dτ_D)
-            Pf             .-= (Diff(qDx,dims=1)./dx .+ Diff(qDy,dims=2)./dy)./β_dτ_D
+            @parallel compute_flux!(qDx,qDy,Pf,T,k_ηf,_dx,_dy,αρgx,αρgy,θ_dτ_D)
+            @parallel update_Pf!(Pf,qDx,qDy,_dx,_dy,β_dτ_D)
             # thermo
-            qTx            .-= (qTx .+ λ_ρCp.*(Diff(T[:,2:end-1],dims=1)./dx))./(1.0 + θ_dτ_T)
-            qTy            .-= (qTy .+ λ_ρCp.*(Diff(T[2:end-1,:],dims=2)./dy))./(1.0 + θ_dτ_T)
+            @parallel update_temperature_flux(qTx, λ_ρCp, T, _dx, θ_dτ_T, qTy, _dy)
             dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1])./dt .+
                                 (max.(qDx[2:end-2,2:end-1],0.0).*Diff(T[1:end-1,2:end-1],dims=1)./dx .+
                                  min.(qDx[3:end-1,2:end-1],0.0).*Diff(T[2:end  ,2:end-1],dims=1)./dx .+
                                  max.(qDy[2:end-1,2:end-2],0.0).*Diff(T[2:end-1,1:end-1],dims=2)./dy .+
                                  min.(qDy[2:end-1,3:end-1],0.0).*Diff(T[2:end-1,2:end  ],dims=2)./dy)./ϕ
             T[2:end-1,2:end-1] .-= (dTdt .+ Diff(qTx,dims=1)./dx .+ Diff(qTy,dims=2)./dy)./(1.0/dt + β_dτ_T)
-            T[[1,end],:]        .= T[[2,end-1],:]
+            #T[[1,end],:]        .= T[[2,end-1],:]
+            # Periodic boundary condition
+            @parallel (1:size(T,2)) bc_x!(T)
+            @parallel (1:size(T,1)) bc_y!(T)
             if iter % ncheck == 0
                 r_Pf  .= Diff(qDx,dims=1)./dx .+ Diff(qDy,dims=2)./dy
                 r_T   .= dTdt .+ Diff(qTx,dims=1)./dx .+ Diff(qTy,dims=2)./dy
