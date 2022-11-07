@@ -16,27 +16,21 @@ using Plots,Plots.Measures,Printf
     return nothing
 end
 
-@parrallel function compute!(C2, C, D_dx, D_dy, dt, _dx, _dy, size_C1_2, size_C2_2)
-    @inn_x(ix) = (blockIdx().x-1) * blockDim().x + threadIdx().x
-    iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
-    if (ix<=size_C1_2 && iy<=size_C2_2)
-        C2[ix+1,iy+1] = C[ix+1,iy+1] - dt*( (@qx(ix+1,iy) - @qx(ix,iy))*_dx + (@qy(ix,iy+1) - @qy(ix,iy))*_dy )
-    end
-    return
+@parallel function update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
+    @all(Pf) = @all(PF) - (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ
+    return nothing
 end
 
-@views function diffusion_2D(; do_visu=false)
+@views function Pf_diffusion_2D(; do_visu=false)
     # Physics
-    Lx, Ly  = 10.0, 10.0
-    D       = 1.0
-    ttot    = 1e-4
+    lx, ly  = 20.0, 20.0
+    k_ηf    = 1.0
     # Numerics
-    BLOCKX  = 32
-    BLOCKY  = 8
-    GRIDX   = 16*24
-    GRIDY   = 64*24
-    nx, ny  = BLOCKX*GRIDX, BLOCKY*GRIDY # number of grid points
+    ϵtol    = 1e-8
+    cfl     = s
+    nx, ny  = 16*32, 16*32 # number of grid points
     nout    = 50
+    maxiter = 500
     # Derived numerics
     dx, dy  = Lx/nx, Ly/ny
     dt      = min(dx, dy)^2/D/4.1
@@ -46,23 +40,23 @@ end
     D_dy    = D/dy
     _dx, _dy= 1.0/dx, 1.0/dy
     # Array initialisation
-    C       = CuArray(exp.(.-(xc .- Lx/2).^2 .-(yc' .- Ly/2).^2))
-    C2      = copy(C)
-    cuthreads = (BLOCKX, BLOCKY, 1)
-    cublocks  = (GRIDX,  GRIDY,  1)
-    size_C1_2, size_C2_2 = size(C,1)-2, size(C,2)-2
+    Pf      = Data.Array( @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2) )
+    qDx     = @zeros(nx+1,ny  )
+    qDy     = @zeros(nx  ,ny+1)
+    r_Pf    = @zeros(nx  ,ny  )    size_C1_2, size_C2_2 = size(Pf,1)-2, size(Pf,2)-2
     t_tic = 0.0; niter = 0
+    err_Pf = 2ϵtol
     # Time loop
-    for it = 1:nt
-        if (it==11) t_tic = Base.time(); niter = 0 end
-        @cuda blocks=cublocks threads=cuthreads compute!(C2, C, D_dx, D_dy, dt, _dx, _dy, size_C1_2, size_C2_2)
-        synchronize()
-        C, C2 = C2, C # pointer swap
+    while err_Pf >= ϵtol && iter <= maxiter
+        if (iter==11) t_tic = Base.time(); niter = 0 end
+        @parallel compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+        @parallel update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)        Pf, Pf = Pf2, Pf # pointer swap
         niter += 1
         if do_visu && (it % nout == 0)
             opts = (aspect_ratio=1, xlims=(xc[1], xc[end]), ylims=(yc[1], yc[end]), clims=(0.0, 1.0), c=:davos, xlabel="Lx", ylabel="Ly", title="time = $(round(it*dt, sigdigits=3))")
-            display(heatmap(xc, yc, Array(C)'; opts...))
+            display(heatmap(xc, yc, Array(Pf)'; opts...))
         end
+        iter += 1; niter += 1
     end
     t_toc = Base.time() - t_tic
     A_eff = 2/1e9*nx*ny*sizeof(Float64)  # Effective main memory access per iteration [GB]
@@ -72,4 +66,4 @@ end
     return
 end
 
-diffusion_2D(; do_visu=false)
+Pf_diffusion_2D(; do_visu=false)
