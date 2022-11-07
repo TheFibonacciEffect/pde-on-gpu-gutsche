@@ -1,37 +1,35 @@
+const USE_GPU = false
+using ParallelStencil
+using ParallelStencil.FiniteDifferences2D
+@static if USE_GPU
+    @init_parallel_stencil(CUDA, Float64, 2)
+else
+    @init_parallel_stencil(Threads, Float64, 2)
+end
+
 using Plots,Plots.Measures,Printf
-using CUDA
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
-macro d_xa(A)  esc(:( $A[ix+1,iy]-$A[ix,iy] )) end
-macro d_ya(A)  esc(:( $A[ix,iy+1]-$A[ix,iy] )) end
 
-function compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-    nx,ny=size(Pf)
-    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
-    iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
-    if (ix<=nx-1 && iy<=ny  )  qDx[ix+1,iy] -= (qDx[ix+1,iy] + k_ηf_dx*@d_xa(Pf))*_1_θ_dτ  end
-    if (ix<=nx   && iy<=ny-1)  qDy[ix,iy+1] -= (qDy[ix,iy+1] + k_ηf_dy*@d_ya(Pf))*_1_θ_dτ  end
+@parallel function compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+    @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf_dx*@d_xa(Pf))*_1_θ_dτ
+    @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf_dy*@d_ya(Pf))*_1_θ_dτ
     return nothing
 end
 
-function update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
-    nx,ny=size(Pf)
-    ix = (blockIdx().x-1) * blockDim().x + threadIdx().x
-    iy = (blockIdx().y-1) * blockDim().y + threadIdx().y
-    if (ix<=nx && iy<=ny)  Pf[ix,iy]  -= (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ  end
+@parallel function update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
+    @all(Pf) = @all(Pf) - (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy)*_β_dτ
     return nothing
 end
 
-function Pf_diffusion_2D(;nx=511,ny=511,do_check=false)
+function Pf_diffusion_2D(;nx=16*32,ny=16*32,do_check=false)
     # physics
     lx,ly   = 20.0,20.0
     k_ηf    = 1.0
     # numerics
     threads = (32,4)
-    # nx,ny   = 511,511
-    blocks  = ceil.(Int,(nx,ny)./threads)
     ϵtol    = 1e-8
-    maxiter = 500#max(nx,ny)
+    maxiter = 500
     ncheck  = ceil(Int,0.25max(nx,ny))
     cfl     = 1.0/sqrt(2.1)
     re      = 2π
@@ -45,11 +43,10 @@ function Pf_diffusion_2D(;nx=511,ny=511,do_check=false)
     _dx,_dy = 1.0/dx,1.0/dy
     k_ηf_dx,k_ηf_dy = k_ηf/dx,k_ηf/dy
     # array initialisation
-    Pf      = CuArray( @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2) )
-    qDx     = CUDA.zeros(Float64, nx+1,ny  )
-    qDy     = CUDA.zeros(Float64, nx  ,ny+1)
-    r_Pf    = CUDA.zeros(Float64, nx  ,ny  )
-    # visu
+    Pf      = Data.Array( @. exp(-(xc-lx/2)^2 -(yc'-ly/2)^2) )
+    qDx     = @zeros(nx+1,ny  )
+    qDy     = @zeros(nx  ,ny+1)
+    r_Pf    = @zeros(nx  ,ny  )    # visu
     if do_check
         ENV["GKSwstype"]="nul"
         if isdir("viz_out")==false mkdir("viz_out") end
@@ -62,8 +59,8 @@ function Pf_diffusion_2D(;nx=511,ny=511,do_check=false)
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
-        CUDA.@sync @cuda blocks=blocks threads=threads compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
-        CUDA.@sync @cuda blocks=blocks threads=threads update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
+        @parallel compute_flux!(qDx,qDy,Pf,k_ηf_dx,k_ηf_dy,_1_θ_dτ)
+        @parallel update_Pf!(Pf,qDx,qDy,_dx,_dy,_β_dτ)
         if do_check && (iter%ncheck == 0)
             r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy
             err_Pf = maximum(abs.(r_Pf))
@@ -80,11 +77,4 @@ function Pf_diffusion_2D(;nx=511,ny=511,do_check=false)
     return
 end
 
-# Pf_diffusion_2D()
-
-resol = nx = ny = 32 .* 2 .^ (0:9) .- 1
-
-for ires ∈ resol
-    println("Running nx=ny=$(ires)")
-    Pf_diffusion_2D(;nx=ires,ny=ires,do_check=false)
-end
+Pf_diffusion_2D()
