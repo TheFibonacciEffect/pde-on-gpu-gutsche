@@ -143,7 +143,8 @@ end
             heatmap(xc,yc,T';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
             # save(@sprintf("anim/%04d.png",iframe),fig); iframe += 1
-            savefig("PorousConvection_2D_xpu-$nx-$ny-t-$it.png")
+            if isdir("PorousConvection_2D_xpu_daint_out")==false mkdir("PorousConvection_2D_xpu_daint_out") end
+            savefig("PorousConvection_2D_xpu_daint_out/PorousConvection_2D_xpu-$nx-$ny-t-$it.png")
         end
     end
     return
