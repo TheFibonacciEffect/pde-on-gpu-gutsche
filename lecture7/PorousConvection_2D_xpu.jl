@@ -31,15 +31,7 @@ end
     return
 end
 
-
-# dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1])./dt .+
-# (max.(qDx[2:end-2,2:end-1],0.0).*Diff(T[1:end-1,2:end-1],dims=1)./dx .+
-#  min.(qDx[3:end-1,2:end-1],0.0).*Diff(T[2:end  ,2:end-1],dims=1)./dx .+
-#  max.(qDy[2:end-1,2:end-2],0.0).*Diff(T[2:end-1,1:end-1],dims=2)./dy .+
-#  min.(qDy[2:end-1,3:end-1],0.0).*Diff(T[2:end-1,2:end  ],dims=2)./dy)./ϕ
-
 @parallel_indices (i,j) function update_dTdt!(dTdt,T, T_old, dt, max, qDx, _dx, min, qDy, _dy, ϕ)
-            # @infiltrate
             dTdt[i-1,j-1] =    (T[i,j] - T_old[i,j])/dt +
                            (max(qDx[i  ,j  ],0.0)*(T[i  ,j  ] - T[i-1,j  ])*_dx +
                             min(qDx[i+1,j  ],0.0)*(T[i+1,j  ] - T[i  ,j  ])*_dx +
@@ -47,8 +39,6 @@ end
                             min(qDy[i  ,j+1],0.0)*(T[i  ,j+1] - T[i  ,j  ])*_dy)/ϕ
     return
 end
-
-
 
 @parallel function temperature_update!(T,dTdt,qTx,qTy,_dx,_dy,β_dτ_T,dt)
     @inn(T) = @inn(T)- ((@all(dTdt) + @d_xa(qTx) * _dx) + @d_ya(qTy) * _dy) / (1.0 / dt + β_dτ_T)
