@@ -73,7 +73,7 @@ end
     ncheck      = ceil(2*max(nx,ny))
     # preprocessing
     dx,dy       = lx/nx,ly/ny
-    _dx,_dy       = 1.0/dx,1.0/dy
+    _dx,_dy     = 1.0/dx,1.0/dy
     xn,yn       = LinRange(-lx/2,lx/2,nx+1),LinRange(-ly,0,ny+1)
     xc,yc       = av1(xn),av1(yn)
     θ_dτ_D      = max(lx,ly)/re_D/cfl/min(dx,dy)
@@ -122,8 +122,8 @@ end
             # Periodic boundary condition
             @parallel (1:size(T,2)) bc_x!(T)
             if iter % ncheck == 0
-                r_Pf  .= Diff(qDx,dims=1)./dx .+ Diff(qDy,dims=2)./dy
-                r_T   .= dTdt .+ Diff(qTx,dims=1)./dx .+ Diff(qTy,dims=2)./dy
+                r_Pf  .= Diff(Array(qDx),dims=1)./dx .+ Diff(Array(qDy),dims=2)./dy
+                r_T   .= dTdt .+ Diff(Array(qTx),dims=1)./dx .+ Diff(Array(qTy),dims=2)./dy
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
                 @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
