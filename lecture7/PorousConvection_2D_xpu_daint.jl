@@ -123,7 +123,7 @@ end
             @parallel (1:size(T,2)) bc_x!(T)
             if iter % ncheck == 0
                 r_Pf  .= Diff(Array(qDx),dims=1)./dx .+ Diff(Array(qDy),dims=2)./dy
-                r_T   .= dTdt .+ Diff(Array(qTx),dims=1)./dx .+ Diff(Array(qTy),dims=2)./dy
+                r_T   .= Array(dTdt) .+ Diff(Array(qTx),dims=1)./dx .+ Diff(Array(qTy),dims=2)./dy
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
                 @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
