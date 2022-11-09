@@ -62,7 +62,7 @@ end
     Ra          = 1000
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*ly/ϕ) # Ra = αρg*k_ηf*ΔT*ly/λ_ρCp/ϕ
     # numerics
-    ny         = 100
+    ny          = 63
     nx          = 2*(ny+1)-1
     nt          = 500
     re_D        = 4π
@@ -79,18 +79,18 @@ end
     θ_dτ_D      = max(lx,ly)/re_D/cfl/min(dx,dy)
     β_dτ_D      = (re_D*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
     # init
-    Pf          = zeros(nx,ny)
-    r_Pf        = zeros(nx,ny)
-    qDx,qDy     = zeros(nx+1,ny),zeros(nx,ny+1)
-    qDx_c,qDy_c = zeros(nx,ny),zeros(nx,ny)
-    qDmag       = zeros(nx,ny)     
-    T           = @. ΔT*exp(-xc^2 - (yc'+ly/2)^2); 
-    T[:,1] .= ΔT/2; T[:,end] .= -ΔT/2
+    Pf          = @zeros(nx,ny)
+    r_Pf        = @zeros(nx,ny)
+    qDx,qDy     = @zeros(nx+1,ny),zeros(nx,ny+1)
+    qDx_c,qDy_c = @zeros(nx,ny),zeros(nx,ny)
+    qDmag       = @zeros(nx,ny)     
+    T           = Data.Array(@. ΔT*exp(-xc^2 - (yc'+ly/2)^2))
+    T[:,1]     .= ΔT/2; T[:,end] .= -ΔT/2
     T_old       = copy(T)
-    dTdt        = zeros(nx-2,ny-2)
-    r_T         = zeros(nx-2,ny-2)
-    qTx         = zeros(nx-1,ny-2)
-    qTy         = zeros(nx-2,ny-1)
+    dTdt        = @zeros(nx-2,ny-2)
+    r_T         = @zeros(nx-2,ny-2)
+    qTx         = @zeros(nx-1,ny-2)
+    qTy         = @zeros(nx-2,ny-1)
     # vis
     st          = ceil(Int,nx/25)
     Xc, Yc      = [x for x=xc, y=yc], [y for x=xc,y=yc]
@@ -144,6 +144,7 @@ end
             display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
             # save(@sprintf("anim/%04d.png",iframe),fig); iframe += 1
         end
+        savefig("final_state PorousConvection_2D_xpu at $nt it.png")
     end
     return
 end
