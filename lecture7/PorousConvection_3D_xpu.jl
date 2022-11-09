@@ -11,6 +11,11 @@ end
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
 
+function save_array(Aname,A)
+    fname = string(Aname,".bin")
+    out = open(fname,"w"); write(out,A); close(out)
+end
+
 @parallel function compute_flux!(qDx,qDy,qDz,Pf,T,k_ηf,_dx,_dy,_dz,αρgx,αρgy,αρgz,_θ_dτ_D)
     @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf*(@d_xa(Pf)*_dx - αρgx*@av_xa(T)))*_θ_dτ_D
     @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf*(@d_ya(Pf)*_dy - αρgy*@av_ya(T)))*_θ_dτ_D
@@ -62,7 +67,7 @@ end
     return
 end
 
-@views function porous_convection_3D(nz = 63;do_vis=false)
+@views function porous_convection_3D(nz = 63;do_vis=false,save_arr=true)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
     k_ηf        = 1.0
@@ -93,18 +98,18 @@ end
     _θ_dτ_D     = 1.0/(1.0 + θ_dτ_D)
     _β_dτ_D     = 1.0/(re_D*k_ηf)/(cfl*min(dx,dy,dz)*max(lx,ly,lz))
     # init
-    Pf          = zeros(nx  ,ny  ,nz  )
-    r_Pf        = zeros(nx  ,ny  ,nz  )
-    qDx         = zeros(nx+1,ny  ,nz  )
-    qDy         = zeros(nx  ,ny+1,nz  )
-    qDz         = zeros(nx  ,ny  ,nz+1)     
-    T           = [ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
+    Pf          = @zeros(nx  ,ny  ,nz  )
+    r_Pf        = @zeros(nx  ,ny  ,nz  )
+    qDx         = @zeros(nx+1,ny  ,nz  )
+    qDy         = @zeros(nx  ,ny+1,nz  )
+    qDz         = @zeros(nx  ,ny  ,nz+1)     
+    T           = Data.Array([ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz])
     T_old       = copy(T)
-    dTdt        = zeros(nx-2,ny-2,nz-2)
-    r_T         = zeros(nx-2,ny-2,nz-2)
-    qTx         = zeros(nx-1,ny-2,nz-2)
-    qTy         = zeros(nx-2,ny-1,nz-2)
-    qTz         = zeros(nx-2,ny-2,nz-1)
+    dTdt        = @zeros(nx-2,ny-2,nz-2)
+    r_T         = @zeros(nx-2,ny-2,nz-2)
+    qTx         = @zeros(nx-1,ny-2,nz-2)
+    qTy         = @zeros(nx-2,ny-1,nz-2)
+    qTz         = @zeros(nx-2,ny-2,nz-1)
     # visualisation dir
     if do_vis
         ENV["GKSwstype"]="nul"
@@ -156,7 +161,11 @@ end
             png(p1,@sprintf("viz3D_out/%04d.png",iframe+=1))
         end
     end
+    if save_arr
+        save_array("out_T",convert.(Float32,Array(T)))
+    end
     return
 end
 
-porous_convection_3D(do_vis=true)
+porous_convection_3D(10; do_vis=false)
+
