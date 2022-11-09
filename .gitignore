@@ -3,3 +3,4 @@
 .ipynb_checkpoints/
 tmp
 Manifest.toml
+*_out
