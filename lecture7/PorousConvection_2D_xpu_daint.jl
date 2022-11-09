@@ -140,7 +140,7 @@ end
             qDy_c ./= qDmag
             qDx_p = qDx_c[1:st:end,1:st:end]
             qDy_p = qDy_c[1:st:end,1:st:end]
-            heatmap(xc,yc,T';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            heatmap(xc,yc,Array(T');xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             # quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black)
             # save(@sprintf("anim/%04d.png",iframe),fig); iframe += 1
             if isdir("PorousConvection_2D_xpu_daint_out")==false mkdir("PorousConvection_2D_xpu_daint_out") end
