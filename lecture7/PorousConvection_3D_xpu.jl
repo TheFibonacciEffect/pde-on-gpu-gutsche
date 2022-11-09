@@ -99,14 +99,16 @@ end
     _β_dτ_D     = 1.0/(re_D*k_ηf)/(cfl*min(dx,dy,dz)*max(lx,ly,lz))
     # init
     Pf          = @zeros(nx  ,ny  ,nz  )
-    r_Pf        = @zeros(nx  ,ny  ,nz  )
+    r_Pf        = zeros(nx  ,ny  ,nz  )
     qDx         = @zeros(nx+1,ny  ,nz  )
     qDy         = @zeros(nx  ,ny+1,nz  )
-    qDz         = @zeros(nx  ,ny  ,nz+1)     
+    qDz         = @zeros(nx  ,ny  ,nz+1)   
+    # initial conditions  
     T           = Data.Array([ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz])
+    T[:,:,1] .= -ΔT/2 ; T[:,:,end] .= ΔT/2
     T_old       = copy(T)
     dTdt        = @zeros(nx-2,ny-2,nz-2)
-    r_T         = @zeros(nx-2,ny-2,nz-2)
+    r_T         = zeros(nx-2,ny-2,nz-2)
     qTx         = @zeros(nx-1,ny-2,nz-2)
     qTy         = @zeros(nx-2,ny-1,nz-2)
     qTz         = @zeros(nx-2,ny-2,nz-1)
@@ -146,8 +148,8 @@ end
             @parallel (1:size(T,2),1:size(T,3)) bc_x!(T)
             @parallel (1:size(T,1),1:size(T,3)) bc_y!(T)
             if iter % ncheck == 0
-                r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy .+ diff(qDz,dims=3)./dz
-                r_T   .= dTdt .+ diff(qTx,dims=1)./dx .+ diff(qTy,dims=2)./dy .+ diff(qTz,dims=3)./dz
+                r_Pf  .= diff(Array(qDx),dims=1)./dx .+ diff(Array(qDy),dims=2)./dy .+ diff(Array(qDz),dims=3)./dz
+                r_T   .= dTdt .+ diff(Array(qTx),dims=1)./dx .+ diff(Array(qTy),dims=2)./dy .+ diff(Array(qTz),dims=3)./dz
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
                 @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
