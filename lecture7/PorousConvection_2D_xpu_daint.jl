@@ -83,7 +83,7 @@ end
     r_Pf        = @zeros(nx,ny)
     qDx,qDy     = @zeros(nx+1,ny),@zeros(nx,ny+1)
     qDx_c,qDy_c = @zeros(nx,ny),@zeros(nx,ny)
-    qDmag       = @zeros(nx,ny)     
+    qDmag       = zeros(nx,ny)     
     T           = Data.Array(@. ΔT*exp(-xc^2 - (yc'+ly/2)^2))
     T[:,1]     .= ΔT/2; T[:,end] .= -ΔT/2
     T_old       = copy(T)
@@ -133,8 +133,8 @@ end
         @printf("it = %d, iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx,err_D,err_T)
         # visualisation
         if it % nvis == 0
-            qDx_c .= avx(qDx)
-            qDy_c .= avy(qDy)
+            qDx_c .= avx(Array(qDx))
+            qDy_c .= avy(Array(qDy))
             qDmag .= sqrt.(qDx_c.^2 .+ qDy_c.^2)
             qDx_c ./= qDmag
             qDy_c ./= qDmag
