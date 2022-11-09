@@ -32,7 +32,7 @@ end
     return nothing
 end
 
-function cumpute!(qDx,qDy,qDz,Pf,k_ηf_dx,k_ηf_dy,k_ηf_dz,_1_θ_dτ,_β_dτ_dx,_β_dτ_dy,_β_dτ_dz)
+function compute!(qDx,qDy,qDz,Pf,k_ηf_dx,k_ηf_dy,k_ηf_dz,_1_θ_dτ,_β_dτ_dx,_β_dτ_dy,_β_dτ_dz)
     @parallel compute_flux!(qDx,qDy,qDz,Pf,k_ηf_dx,k_ηf_dy,k_ηf_dz,_1_θ_dτ)
     @parallel update_Pf!(Pf,qDx,qDy,qDz,_β_dτ_dx,_β_dτ_dy,_β_dτ_dz)
     return nothing
@@ -83,7 +83,7 @@ function Pf_diffusion_3D(;nx=32,ny=32,nz=32,do_check=false)
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if (iter==11) t_tic = Base.time(); niter = 0 end
-        cumpute!(qDx,qDy,qDz,Pf,k_ηf_dx,k_ηf_dy,k_ηf_dz,_1_θ_dτ,_β_dτ_dx,_β_dτ_dy,_β_dτ_dz)
+        compute!(qDx,qDy,qDz,Pf,k_ηf_dx,k_ηf_dy,k_ηf_dz,_1_θ_dτ,_β_dτ_dx,_β_dτ_dy,_β_dτ_dz)
         if do_check && (iter%ncheck == 0)
             r_Pf  .= diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy .+ diff(qDz,dims=3)./dz
             err_Pf = maximum(abs.(r_Pf))
