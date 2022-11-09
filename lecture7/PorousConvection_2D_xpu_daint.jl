@@ -82,7 +82,7 @@ end
     Pf          = @zeros(nx,ny)
     r_Pf        = @zeros(nx,ny)
     qDx,qDy     = @zeros(nx+1,ny),@zeros(nx,ny+1)
-    qDx_c,qDy_c = @zeros(nx,ny),@zeros(nx,ny)
+    qDx_c,qDy_c = zeros(nx,ny),zeros(nx,ny)
     qDmag       = zeros(nx,ny)     
     T           = Data.Array(@. ΔT*exp(-xc^2 - (yc'+ly/2)^2))
     T[:,1]     .= ΔT/2; T[:,end] .= -ΔT/2
