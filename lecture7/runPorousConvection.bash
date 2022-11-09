@@ -2,7 +2,7 @@
 #SBATCH --job-name="my_gpu_run"
 #SBATCH --output=my_gpu_run.%j.o
 #SBATCH --error=my_gpu_run.%j.e
-#SBATCH --time=00:10:00
+#SBATCH --time=02:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=normal
