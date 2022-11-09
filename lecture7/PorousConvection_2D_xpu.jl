@@ -32,18 +32,21 @@ end
 end
 
 
+# dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1])./dt .+
+# (max.(qDx[2:end-2,2:end-1],0.0).*Diff(T[1:end-1,2:end-1],dims=1)./dx .+
+#  min.(qDx[3:end-1,2:end-1],0.0).*Diff(T[2:end  ,2:end-1],dims=1)./dx .+
+#  max.(qDy[2:end-1,2:end-2],0.0).*Diff(T[2:end-1,1:end-1],dims=2)./dy .+
+#  min.(qDy[2:end-1,3:end-1],0.0).*Diff(T[2:end-1,2:end  ],dims=2)./dy)./ϕ
 
-# @parallel_indices (i,j) function (T, T_old, dt, max, qDx, _dx, min, qDy, _dy, ϕ)
-# nx,ny = size(T)
-# (1<i<nx && 1<j<ny) && (dTdt[i,j] =    (T[i,j] - T_old[i,j])/dt +
-#                     (max(qDx[i,j],0.0)*@d_xa(T[1:end-1,2:end-1])*_dx +
-#                     min(qDx[i+1,j],0.0)*@d_xa(T[2:end  ,2:end-1],dims=1)*_dx +
-#                     max(qDy[i,j-1],0.0)*@d_ya(T[2:end-1,1:end-1])*_dy +
-#                     min(qDy[i,j+1],0.0)*@d_ya(T[2:end-1,2:end])*_dy)/ϕ)
-# # (i<nx && j<ny) && ( @inn(T) = @inn(T)- ((dTdt + Diff(qTx, dims = 1) *_dx) + Diff(qTy, dims = 2) *_dy) ./ (1.0 / dt + β_dτ_T))
-
-# return
-# end
+@parallel_indices (i,j) function update_dTdt!(dTdt,T, T_old, dt, max, qDx, _dx, min, qDy, _dy, ϕ)
+            # @infiltrate
+            dTdt[i-1,j-1] =    (T[i,j] - T_old[i,j])/dt +
+                           (max(qDx[i  ,j  ],0.0)*(T[i  ,j  ] - T[i-1,j  ])*_dx +
+                            min(qDx[i+1,j  ],0.0)*(T[i+1,j  ] - T[i  ,j  ])*_dx +
+                            max(qDy[i  ,j  ],0.0)*(T[i  ,j  ] - T[i  ,j-1])*_dy +
+                            min(qDy[i  ,j+1],0.0)*(T[i  ,j+1] - T[i  ,j  ])*_dy)/ϕ
+    return
+end
 
 
 
@@ -51,9 +54,6 @@ end
     @inn(T) = @inn(T)- ((@all(dTdt) + @d_xa(qTx) * _dx) + @d_ya(qTy) * _dy) / (1.0 / dt + β_dτ_T)
     return
 end
-
-
-
 
 @parallel_indices (iy) function bc_x!(A)
     A[1  ,iy] = A[2    ,iy]
@@ -72,7 +72,7 @@ end
     Ra          = 1000
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*ly/ϕ) # Ra = αρg*k_ηf*ΔT*ly/λ_ρCp/ϕ
     # numerics
-    ny          = 63
+    ny         = 100
     nx          = 2*(ny+1)-1
     nt          = 500
     re_D        = 4π
@@ -126,11 +126,7 @@ end
             @parallel update_Pf!(Pf,qDx,qDy,_dx,_dy,β_dτ_D)
             # thermo
             @parallel update_temperature_flux(qTx, λ_ρCp, T, _dx, θ_dτ_T, qTy, _dy)
-            dTdt           .= (T[2:end-1,2:end-1] .- T_old[2:end-1,2:end-1])./dt .+
-                                (max.(qDx[2:end-2,2:end-1],0.0).*Diff(T[1:end-1,2:end-1],dims=1)./dx .+
-                                 min.(qDx[3:end-1,2:end-1],0.0).*Diff(T[2:end  ,2:end-1],dims=1)./dx .+
-                                 max.(qDy[2:end-1,2:end-2],0.0).*Diff(T[2:end-1,1:end-1],dims=2)./dy .+
-                                 min.(qDy[2:end-1,3:end-1],0.0).*Diff(T[2:end-1,2:end  ],dims=2)./dy)./ϕ
+            @parallel (2:(size(T,1)-1), 2:(size(T,2)-1)) update_dTdt!(dTdt,T, T_old, dt, max, qDx, _dx, min, qDy, _dy, ϕ)
             @parallel temperature_update!(T,dTdt,qTx,qTy,_dx,_dy,β_dτ_T,dt)
             #T[[1,end],:]        .= T[[2,end-1],:]
             # Periodic boundary condition
