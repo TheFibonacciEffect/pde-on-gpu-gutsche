@@ -80,7 +80,7 @@ end
     β_dτ_D      = (re_D*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
     # init
     Pf          = @zeros(nx,ny)
-    r_Pf        = @zeros(nx,ny)
+    r_Pf        = zeros(nx,ny)
     qDx,qDy     = @zeros(nx+1,ny),@zeros(nx,ny+1)
     qDx_c,qDy_c = zeros(nx,ny),zeros(nx,ny)
     qDmag       = zeros(nx,ny)     
@@ -88,7 +88,7 @@ end
     T[:,1]     .= ΔT/2; T[:,end] .= -ΔT/2
     T_old       = copy(T)
     dTdt        = @zeros(nx-2,ny-2)
-    r_T         = @zeros(nx-2,ny-2)
+    r_T         = zeros(nx-2,ny-2)
     qTx         = @zeros(nx-1,ny-2)
     qTy         = @zeros(nx-2,ny-1)
     # vis
