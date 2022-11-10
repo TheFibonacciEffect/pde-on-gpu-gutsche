@@ -1,6 +1,6 @@
 using Printf,Plots
 
-const USE_GPU = false
+const USE_GPU = true
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -67,7 +67,7 @@ end
     return
 end
 
-@views function porous_convection_3D(nz = 63;do_vis=false,save_arr=true)
+@views function porous_convection_3D(;nz = 63,do_vis=false,save_arr=true)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
     k_ηf        = 1.0
@@ -85,7 +85,7 @@ end
     nt          = 500
     cfl         = 1.0/sqrt(3.1)
     re_D        = 4π
-    maxiter     = max(nx,ny)
+    maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
     nvis        = 20
     ncheck      = ceil(max(nx,ny,nz))
@@ -149,7 +149,7 @@ end
             @parallel (1:size(T,1),1:size(T,3)) bc_y!(T)
             if iter % ncheck == 0
                 r_Pf  .= diff(Array(qDx),dims=1)./dx .+ diff(Array(qDy),dims=2)./dy .+ diff(Array(qDz),dims=3)./dz
-                r_T   .= dTdt .+ diff(Array(qTx),dims=1)./dx .+ diff(Array(qTy),dims=2)./dy .+ diff(Array(qTz),dims=3)./dz
+                r_T   .= Array(dTdt) .+ diff(Array(qTx),dims=1)./dx .+ diff(Array(qTy),dims=2)./dy .+ diff(Array(qTz),dims=3)./dz
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
                 @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
@@ -169,5 +169,5 @@ end
     return
 end
 
-porous_convection_3D(10; do_vis=false)
+porous_convection_3D(; do_vis=false)
 
