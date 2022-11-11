@@ -1,6 +1,6 @@
 using Printf,Plots
 
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -47,6 +47,7 @@ end
             max(qDz[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i  ,j  ,k-1])*_dz +
             min(qDz[i  ,j  ,k+1],0.0)*(T[i  ,j  ,k+1] - T[i  ,j  ,k  ])*_dz
             )/ϕ
+    end
     return
 end
 
@@ -169,5 +170,5 @@ end
     return
 end
 
-porous_convection_3D(; do_vis=false)
+porous_convection_3D(;nz=20, do_vis=false)
 
