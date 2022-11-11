@@ -73,22 +73,22 @@ end
     ncheck      = ceil(max(nx,ny))
     # preprocessing
     dx,dy       = lx/nx,ly/ny
-    _dx,_dy       = 1.0/dx,1.0/dy
+    _dx,_dy     = 1.0/dx,1.0/dy
     xn,yn       = LinRange(-lx/2,lx/2,nx+1),LinRange(-ly,0,ny+1)
     xc,yc       = av1(xn),av1(yn)
     θ_dτ_D      = max(lx,ly)/re_D/cfl/min(dx,dy)
     β_dτ_D      = (re_D*k_ηf)/(cfl*min(dx,dy)*max(lx,ly))
     # init
     Pf          = @zeros(nx,ny)
-    r_Pf        = @zeros(nx,ny)
-    qDx,qDy     = @zeros(nx+1,ny),zeros(nx,ny+1)
-    qDx_c,qDy_c = @zeros(nx,ny),zeros(nx,ny)
-    qDmag       = @zeros(nx,ny)     
+    r_Pf        = zeros(nx,ny)
+    qDx,qDy     = @zeros(nx+1,ny),@zeros(nx,ny+1)
+    qDx_c,qDy_c = zeros(nx,ny),zeros(nx,ny)
+    qDmag       = zeros(nx,ny)     
     T           = Data.Array(@. ΔT*exp(-xc^2 - (yc'+ly/2)^2))
     T[:,1]     .= ΔT/2; T[:,end] .= -ΔT/2
     T_old       = copy(T)
     dTdt        = @zeros(nx-2,ny-2)
-    r_T         = @zeros(nx-2,ny-2)
+    r_T         = zeros(nx-2,ny-2)
     qTx         = @zeros(nx-1,ny-2)
     qTy         = @zeros(nx-2,ny-1)
     # vis
@@ -122,8 +122,8 @@ end
             # Periodic boundary condition
             @parallel (1:size(T,2)) bc_x!(T)
             if iter % ncheck == 0
-                r_Pf  .= Diff(qDx,dims=1)./dx .+ Diff(qDy,dims=2)./dy
-                r_T   .= dTdt .+ Diff(qTx,dims=1)./dx .+ Diff(qTy,dims=2)./dy
+                r_Pf  .= Diff(Array(qDx),dims=1)./dx .+ Diff(Array(qDy),dims=2)./dy
+                r_T   .= Array(dTdt) .+ Diff(Array(qTx),dims=1)./dx .+ Diff(Array(qTy),dims=2)./dy
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
                 @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
@@ -133,18 +133,19 @@ end
         @printf("it = %d, iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx,err_D,err_T)
         # visualisation
         if it % nvis == 0
-            qDx_c .= avx(qDx)
-            qDy_c .= avy(qDy)
+            qDx_c .= avx(Array(qDx))
+            qDy_c .= avy(Array(qDy))
             qDmag .= sqrt.(qDx_c.^2 .+ qDy_c.^2)
             qDx_c ./= qDmag
             qDy_c ./= qDmag
             qDx_p = qDx_c[1:st:end,1:st:end]
             qDy_p = qDy_c[1:st:end,1:st:end]
-            heatmap(xc,yc,T';xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
-            display(quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black))
+            heatmap(xc,yc,Array(T');xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
+            quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black)
             # save(@sprintf("anim/%04d.png",iframe),fig); iframe += 1
+            if isdir("PorousConvection_2D_xpu_local_out")==false mkdir("PorousConvection_2D_xpu_local_out") end
+            savefig("PorousConvection_2D_xpu_local_out/PorousConvection_2D_xpu-$nx-$ny-t-$(lpad(it ÷ nvis,3,"0")).png")
         end
-        savefig("final_state PorousConvection_2D_xpu at $nt it.png")
     end
     return
 end
