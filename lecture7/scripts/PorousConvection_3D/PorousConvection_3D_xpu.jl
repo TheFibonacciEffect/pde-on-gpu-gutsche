@@ -36,19 +36,19 @@ end
 end
 
 @parallel_indices (i,j,k) function update_dTdt!(dTdt,T,T_old,dt,max,qDx,_dx,min,qDy,_dy,qDz,_dz,ϕ)
-            dTdt[i-1,j-1,k-1] =    (T[i,j,k] - T_old[i,j,k])/dt +
-                           (
-                            max(qDx[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i-1,j  ,k  ])*_dx +
-                            min(qDx[i+1,j  ,k  ],0.0)*(T[i+1,j  ,k  ] - T[i  ,j  ,k  ])*_dx +
-                            max(qDy[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i  ,j-1,k  ])*_dy +
-                            min(qDy[i  ,j+1,k  ],0.0)*(T[i  ,j+1,k  ] - T[i  ,j  ,k  ])*_dy +
-                            max(qDz[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i  ,j  ,k-1])*_dz +
-                            min(qDz[i  ,j  ,k+1],0.0)*(T[i  ,j  ,k+1] - T[i  ,j  ,k  ])*_dz
-                            )/ϕ
+    nx,ny,nz=size(T)
+    if (2<=ix<=nx-1 && 2<=iy<=ny-1 && 2<=iz<=nz-1)
+        dTdt[i-1,j-1,k-1] = (T[i,j,k] - T_old[i,j,k])/dt +
+            (
+            max(qDx[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i-1,j  ,k  ])*_dx +
+            min(qDx[i+1,j  ,k  ],0.0)*(T[i+1,j  ,k  ] - T[i  ,j  ,k  ])*_dx +
+            max(qDy[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i  ,j-1,k  ])*_dy +
+            min(qDy[i  ,j+1,k  ],0.0)*(T[i  ,j+1,k  ] - T[i  ,j  ,k  ])*_dy +
+            max(qDz[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i  ,j  ,k-1])*_dz +
+            min(qDz[i  ,j  ,k+1],0.0)*(T[i  ,j  ,k+1] - T[i  ,j  ,k  ])*_dz
+            )/ϕ
     return
 end
-
-
 
 @parallel function temperature_update!(T,dTdt,qTx,qTy,qTz,_dx,_dy,_dz,β_dτ_T,dt)
     @inn(T) = @inn(T)- (@all(dTdt) + @d_xa(qTx) * _dx + @d_ya(qTy) * _dy + @d_za(qTz) * _dz) / (1.0 / dt + β_dτ_T)
