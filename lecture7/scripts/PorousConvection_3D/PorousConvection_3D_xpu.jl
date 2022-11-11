@@ -37,7 +37,7 @@ end
 
 @parallel_indices (i,j,k) function update_dTdt!(dTdt,T,T_old,dt,max,qDx,_dx,min,qDy,_dy,qDz,_dz,ϕ)
     nx,ny,nz=size(T)
-    if (2<=ix<=nx-1 && 2<=iy<=ny-1 && 2<=iz<=nz-1)
+    if (2<=i<=nx-1 && 2<=j<=ny-1 && 2<=k<=nz-1)
         dTdt[i-1,j-1,k-1] = (T[i,j,k] - T_old[i,j,k])/dt +
             (
             max(qDx[i  ,j  ,k  ],0.0)*(T[i  ,j  ,k  ] - T[i-1,j  ,k  ])*_dx +
