@@ -1,0 +1,1 @@
+scp class202@daint:~/github-repo/pde-on-gpu-gutsche/lecture7/scripts/PorousConvection_3D/out_T.bin "./out_T.bin"
