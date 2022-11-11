@@ -169,5 +169,5 @@ end
     return
 end
 
-porous_convection_3D(;nz=10,nt=20, do_vis=false)
+porous_convection_3D(;nz=parse(Int,ARGS[1]),nt=parse(Int,ARGS[2]), do_vis=parse(Bool,ARGS[3]), save_arr=parse(Bool,ARGS[4]))
 

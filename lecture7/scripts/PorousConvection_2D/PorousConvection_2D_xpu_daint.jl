@@ -51,7 +51,7 @@ end
     return
 end
 
-@views function porous_convection_2D()
+@views function porous_convection_2D(ny,nx,nt)
     # physics
     lx,ly       = 40.0,20.0
     k_ηf        = 1.0
@@ -62,9 +62,6 @@ end
     Ra          = 1000
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*ly/ϕ) # Ra = αρg*k_ηf*ΔT*ly/λ_ρCp/ϕ
     # numerics
-    ny          = 1023
-    nx          = 511
-    nt          = 4000
     re_D        = 4π
     cfl         = 1.0/sqrt(2.1)
     maxiter     = 10max(nx,ny)
@@ -150,4 +147,4 @@ end
     return
 end
 
-porous_convection_2D()
+porous_convection_2D(map(x->parse(Int64, x), ARGS)...)
