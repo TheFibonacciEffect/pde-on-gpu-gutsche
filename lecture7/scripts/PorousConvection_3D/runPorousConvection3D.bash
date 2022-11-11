@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --job-name="PC_3D"
+#SBATCH --job-name="PC_3D 127 2000 false true"
 #SBATCH --output=PC_3D.%j.o
 #SBATCH --error=PC_3D.%j.e
 #SBATCH --time=02:30:00
@@ -12,3 +12,4 @@
 module load daint-gpu
 module load Julia/1.7.2-CrayGNU-21.09-cuda
 srun "julia -O3 --check-bounds=no --project=../.. ./PorousConvection_3D_xpu.jl 127 2000 false true"
+# nz = 127,nt= 2000,do_vis=false,save_arr=true

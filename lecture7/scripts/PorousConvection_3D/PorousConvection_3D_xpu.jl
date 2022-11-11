@@ -120,6 +120,7 @@ end
         println("Animation directory: $(anim.dir)")
         iframe = 0
     end
+    println("nx,ny,nz,nt = $(nx),$(ny),$(nz),$(nt)")
     # action
     for it = 1:nt
         T_old .= T
