@@ -15,6 +15,7 @@ case ${answer:0:1} in
     ;;
 esac
 
-sbatch ./runPorousConvection.bash
+
+sbatch ./runPorousConvection3D.bash
 sleep 5
 squeue -u class202
