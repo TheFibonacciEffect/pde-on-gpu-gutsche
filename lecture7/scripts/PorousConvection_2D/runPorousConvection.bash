@@ -12,4 +12,4 @@
 
 module load daint-gpu
 module load Julia/1.7.2-CrayGNU-21.09-cuda
-srun julia -O3 --check-bounds=no --project=. ./PorousConvection_2D_xpu_daint.jl
+srun julia -O3 --check-bounds=no --project=. ./PorousConvection_2D/PorousConvection_2D_xpu_daint.jl
