@@ -1,4 +1,6 @@
 interval=20
 figs_path="../../figs"
-imgs_path="$figs_path/PorousConvection_2D_xpu_daint_out"
-convert -delay 10 -loop 0 $imgs_path/*.png $figs_path/out.gif
+imgs_path="./PorousConvection_2D_xpu_daint_out"
+# cd $imgs_path
+convert -delay 3 -loop 0 $imgs_path/*.png "$figs_path/out.gif"
+# convert -delay 10 -loop 0 *.png out.gif

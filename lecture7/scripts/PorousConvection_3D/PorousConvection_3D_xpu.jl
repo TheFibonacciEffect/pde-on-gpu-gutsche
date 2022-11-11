@@ -165,7 +165,7 @@ end
         end
     end
     if save_arr
-        save_array("out_T",convert.(Float32,Array(T)))
+        save_array("out_T-$(nx)-$(ny)-$(nz)-$(nt)",convert.(Float32,Array(T)))
     end
     return
 end
