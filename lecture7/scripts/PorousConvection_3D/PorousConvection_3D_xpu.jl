@@ -68,7 +68,7 @@ end
     return
 end
 
-@views function porous_convection_3D(;nz = 63,do_vis=false,save_arr=true)
+@views function porous_convection_3D(;nz = 127,nt= 2000,do_vis=false,save_arr=true)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
     k_ηf        = 1.0
@@ -82,14 +82,13 @@ end
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*lz/ϕ) # Ra = αρg*k_ηf*ΔT*lz/λ_ρCp/ϕ
     # numerics
     ny          = nz
-    nx          = 2*(nz+1)-1
-    nt          = 500
+    nx          = Int(ceil(255/127*nz))
     cfl         = 1.0/sqrt(3.1)
     re_D        = 4π
     maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
     nvis        = 50
-    ncheck      = ceil(max(nx,ny,nz))
+    ncheck      = ceil(2*max(nx,ny,nz))
     # preprocessing
     dx,dy,dz    = lx/nx,ly/ny,lz/nz
     _dx,_dy,_dz = 1.0/dx,1.0/dy,1.0/dz
@@ -170,5 +169,5 @@ end
     return
 end
 
-porous_convection_3D(;nz=63, do_vis=false)
+porous_convection_3D(;nz=10,nt=20, do_vis=false)
 
