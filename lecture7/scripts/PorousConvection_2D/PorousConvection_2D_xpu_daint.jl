@@ -66,7 +66,7 @@ end
     cfl         = 1.0/sqrt(2.1)
     maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
-    nvis        = 20
+    nvis        = 50
     ncheck      = ceil(2*max(nx,ny))
     # preprocessing
     dx,dy       = lx/nx,ly/ny
