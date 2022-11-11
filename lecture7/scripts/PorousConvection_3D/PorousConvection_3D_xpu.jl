@@ -1,6 +1,6 @@
 using Printf,Plots
 
-const USE_GPU = false
+const USE_GPU = true
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -88,7 +88,7 @@ end
     re_D        = 4π
     maxiter     = 10max(nx,ny)
     ϵtol        = 1e-6
-    nvis        = 20
+    nvis        = 50
     ncheck      = ceil(max(nx,ny,nz))
     # preprocessing
     dx,dy,dz    = lx/nx,ly/ny,lz/nz
@@ -106,7 +106,7 @@ end
     qDz         = @zeros(nx  ,ny  ,nz+1)   
     # initial conditions  
     T           = Data.Array([ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz])
-    T[:,:,1] .= -ΔT/2 ; T[:,:,end] .= ΔT/2
+    T[:,:,1]   .= -ΔT/2 ; T[:,:,end] .= ΔT/2
     T_old       = copy(T)
     dTdt        = @zeros(nx-2,ny-2,nz-2)
     r_T         = zeros(nx-2,ny-2,nz-2)
@@ -170,5 +170,5 @@ end
     return
 end
 
-porous_convection_3D(;nz=20, do_vis=false)
+porous_convection_3D(;nz=63, do_vis=false)
 
