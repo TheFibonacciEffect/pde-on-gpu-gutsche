@@ -4,3 +4,4 @@
 tmp
 Manifest.toml
 *_out
+*.bin
