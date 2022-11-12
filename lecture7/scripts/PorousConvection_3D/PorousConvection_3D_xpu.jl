@@ -144,7 +144,6 @@ end
             @parallel update_temperature_flux(qTx,qTy,qTz,λ_ρCp,T,_θ_dτ_T,_dx,_dy,_dz)
             @parallel (2:(size(T,1)-1), 2:(size(T,2)-1),2:(size(T,3)-1)) update_dTdt!(dTdt,T, T_old, dt, max, qDx, _dx, min, qDy, _dy,qDz, _dz, ϕ)
             @parallel temperature_update!(T,dTdt,qTx,qTy,qTz,_dx,_dy,_dz,β_dτ_T,dt)
-            #T[[1,end],:]        .= T[[2,end-1],:]
             # Periodic boundary condition
             @parallel (1:size(T,2),1:size(T,3)) bc_x!(T)
             @parallel (1:size(T,1),1:size(T,3)) bc_y!(T)
@@ -153,7 +152,7 @@ end
                 r_T   .= Array(dTdt) .+ diff(Array(qTx),dims=1)./dx .+ diff(Array(qTy),dims=2)./dy .+ diff(Array(qTz),dims=3)./dz
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
-                @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
+                @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T) #if itter/nx is 10 it hit 10 itterations
             end
             iter += 1
         end
