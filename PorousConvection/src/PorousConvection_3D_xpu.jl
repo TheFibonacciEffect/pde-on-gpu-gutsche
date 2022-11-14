@@ -1,7 +1,9 @@
+
+module PorousConvection_3D_xpu
 using Printf,Plots
 using Dates
-
-const USE_GPU = true
+    
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -167,5 +169,7 @@ end
     if save_arr
         save_array("out_T-$(nx)-$(ny)-$(nz)-$(nt)",convert.(Float32,Array(T)))
     end
-    return
+    return T
 end
+
+end#module

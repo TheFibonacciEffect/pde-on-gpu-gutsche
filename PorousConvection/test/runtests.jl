@@ -10,7 +10,7 @@ function runtests()
     printstyled("Testing PorousConvection.jl\n"; bold=true, color=:white)
     try
         run(`$exename -O3 --startup-file=no --check-bounds=no $(joinpath(testdir, "test2D.jl"))`)
-        # run(`$exename -O3 --startup-file=no --check-bounds=no $(joinpath(testdir, "test3D.jl"))`)
+        run(`$exename -O3 --startup-file=no --check-bounds=no $(joinpath(testdir, "test3D.jl"))`)
     catch e
         printstyled("Error in tests: $(e)\n"; bold=true, color=:red)
         stacktrace()
