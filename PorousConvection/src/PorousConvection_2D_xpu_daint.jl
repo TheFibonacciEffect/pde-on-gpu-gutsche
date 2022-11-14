@@ -1,11 +1,11 @@
 using Printf,LazyArrays,Plots
 using Dates
 
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
-    @init_parallel_stencil(CUDA, Float64, 2)
+    @init_paraxllel_stencil(CUDA, Float64, 2)
 else
     @init_parallel_stencil(Threads, Float64, 2)
 end
@@ -52,7 +52,7 @@ end
     return
 end
 
-@views function porous_convection_2D(ny,nx,nt)
+@views function porous_convection_2D(ny,nx,nt;do_vis=true)
     println("nx=$nx,ny=$ny,nt=$nt")
     # physics
     lx,ly       = 40.0,20.0
@@ -131,7 +131,7 @@ end
         end
         @printf("it = %d, iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx,err_D,err_T)
         # visualisation
-        if it % nvis == 0
+        if do_vis && (it % nvis == 0)
             qDx_c .= avx(Array(qDx))
             qDy_c .= avy(Array(qDy))
             qDmag .= sqrt.(qDx_c.^2 .+ qDy_c.^2)
@@ -148,5 +148,5 @@ end
             savefig("PorousConvection_2D_xpu_daint_out/PorousConvection_2D_xpu-$nx-$ny-t-$(lpad(it ÷ nvis,3,"0")).png")
         end
     end
-    return
+    return T
 end
