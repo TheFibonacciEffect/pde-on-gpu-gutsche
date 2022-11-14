@@ -1,2 +1,6 @@
+using Test
+
 push!(LOAD_PATH, "../src")
-@test TEST_VAR == true
+using PorousConvection
+
+@test PorousConvection.TEST_VAR == true
