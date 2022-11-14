@@ -1,4 +1,5 @@
 using Printf,LazyArrays,Plots
+using Dates
 
 const USE_GPU = true
 using ParallelStencil
@@ -52,6 +53,7 @@ end
 end
 
 @views function porous_convection_2D(ny,nx,nt)
+    println("nx=$nx,ny=$ny,nt=$nt")
     # physics
     lx,ly       = 40.0,20.0
     k_ηf        = 1.0
@@ -137,6 +139,8 @@ end
             qDy_c ./= qDmag
             qDx_p = qDx_c[1:st:end,1:st:end]
             qDy_p = qDy_c[1:st:end,1:st:end]
+            @show size(qDx_p)
+            @show size(qDy_p)
             heatmap(xc,yc,Array(T');xlims=(xc[1],xc[end]),ylims=(yc[1],yc[end]),aspect_ratio=1,c=:turbo)
             quiver!(Xp[:], Yp[:], quiver=(qDx_p[:], qDy_p[:]), lw=0.5, c=:black)
             # save(@sprintf("anim/%04d.png",iframe),fig); iframe += 1
@@ -146,5 +150,7 @@ end
     end
     return
 end
-
-porous_convection_2D(map(x->parse(Int64, x), ARGS)...)
+args = map(x->parse(Int64, x), ARGS)
+println(args)
+println(now())
+porous_convection_2D(args...)

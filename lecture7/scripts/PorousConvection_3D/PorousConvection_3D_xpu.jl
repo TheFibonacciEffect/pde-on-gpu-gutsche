@@ -1,4 +1,5 @@
 using Printf,Plots
+using Dates
 
 const USE_GPU = true
 using ParallelStencil
@@ -169,5 +170,9 @@ end
     return
 end
 
-porous_convection_3D(;nz=parse(Int,ARGS[1]),nt=parse(Int,ARGS[2]), do_vis=parse(Bool,ARGS[3]), save_arr=parse(Bool,ARGS[4]))
+args = (nz=parse(Int,ARGS[1]),nt=parse(Int,ARGS[2]), do_vis=parse(Bool,ARGS[3]), save_arr=parse(Bool,ARGS[4]))
+
+println(args)
+println(now())
+porous_convection_3D(;args...)
 
