@@ -97,7 +97,7 @@ end
     xc,yc,zc    = av1(xn),av1(yn),av1(zn)
     θ_dτ_D      = max(lx,ly,lz)/re_D/cfl/min(dx,dy,dz)
     _θ_dτ_D     = 1.0/(1.0 + θ_dτ_D)
-    _β_dτ_D     = 1.0/(re_D*k_ηf)/(cfl*min(dx,dy,dz)*max(lx,ly,lz))
+    _β_dτ_D     = 1.0/((re_D*k_ηf)/(cfl*min(dx,dy,dz)*max(lx,ly,lz)))
     # init
     Pf          = @zeros(nx  ,ny  ,nz  )
     r_Pf        = zeros(nx  ,ny  ,nz  )
