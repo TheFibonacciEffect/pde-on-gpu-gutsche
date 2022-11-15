@@ -1,7 +1,7 @@
 using Printf,Plots
 using Dates
 
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -106,7 +106,7 @@ end
     qDz         = @zeros(nx  ,ny  ,nz+1)   
     # initial conditions  
     T           = Data.Array([ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz])
-    T[:,:,1]   .= -ΔT/2 ; T[:,:,end] .= ΔT/2
+    T[:,:,1]   .= ΔT/2 ; T[:,:,end] .= -ΔT/2
     T_old       = copy(T)
     dTdt        = @zeros(nx-2,ny-2,nz-2)
     r_T         = zeros(nx-2,ny-2,nz-2)
@@ -164,8 +164,13 @@ end
                     title!(pPf2,"residue r_Pf[:,nz÷2,:],iter/nx=$(iter/nx)")
                     pTf2=heatmap(      Array( r_T[:,nz÷2,:]'),aspect_ratio=1,color=:balance,clim=(-0.1,0.1))
                     title!(pTf2,"residue r_T[:,nz÷2,:],iter/nx=$(iter/nx)")
-                    p3=plot(pPf1,pPf2,pTf1,pTf2,layout=(2,2),size=(800,400))
-                    savefig(p3,"res3D_out/residuals_it=$it-iter=$iter.png")
+                    pT1 = heatmap(xc,yc,Array(T[:,:,nz÷2]'),aspect_ratio=1,color=:balance,clim=(0.0,1.0))
+                    title!(pT1,"Temperature T[:,:,nz÷2],iter/nx=$(iter/nx)")
+                    pT2 = heatmap(xc,yc,Array(T[:,nz÷2,:]'),aspect_ratio=1,color=:balance,clim=(0.0,1.0))
+                    title!(pT2,"Temperature T[:,nz÷2,:],iter/nx=$(iter/nx)")
+
+                    p=plot(pPf1,pPf2,pTf1,pTf2,pT1,pT2 ,layout=(2,3),size=(800,400))
+                    savefig(p,"res3D_out/residuals_it=$it-iter=$iter.png")
                 end
             end
             iter += 1
