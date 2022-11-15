@@ -5,3 +5,5 @@ tmp
 Manifest.toml
 *_out
 *.bin
+*.o
+*.e
