@@ -69,7 +69,7 @@ end
     return
 end
 
-@views function porous_convection_3D(;nz = 127,nt= 2000,do_vis=false,save_arr=true)
+@views function porous_convection_3D(;nz = 127,nt= 2000,do_vis=false,save_arr=true,plot_residuals=false)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
     k_ηf        = 1.0
@@ -154,6 +154,19 @@ end
                 err_D  = maximum(abs.(r_Pf))
                 err_T  = maximum(abs.(r_T))
                 @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T) #if itter/nx is 10 it hit 10 itterations
+                if plot_residuals
+                    if isdir("res3D_out")==false mkdir("res3D_out") end
+                    pPf1=heatmap(xc,yc,Array(r_Pf[:,:,nz÷2]'),aspect_ratio=1,color=:balance,clim=(-0.1,0.1))
+                    title!(pPf1,"residue r_Pf[:,:,nz÷2],iter/nx=$(iter/nx)")
+                    pTf1=heatmap(      Array( r_T[:,:,nz÷2]'),aspect_ratio=1,color=:balance,clim=(-0.1,0.1))
+                    title!(pTf1,"residue r_T[:,:,nz÷2],iter/nx=$(iter/nx)")
+                    pPf2=heatmap(xc,yc,Array(r_Pf[:,nz÷2,:]'),aspect_ratio=1,color=:balance,clim=(-0.1,0.1))
+                    title!(pPf2,"residue r_Pf[:,nz÷2,:],iter/nx=$(iter/nx)")
+                    pTf2=heatmap(      Array( r_T[:,nz÷2,:]'),aspect_ratio=1,color=:balance,clim=(-0.1,0.1))
+                    title!(pTf2,"residue r_T[:,nz÷2,:],iter/nx=$(iter/nx)")
+                    p3=plot(pPf1,pPf2,pTf1,pTf2,layout=(2,2),size=(800,400))
+                    savefig(p3,"res3D_out/residuals_it=$it-iter=$iter.png")
+                end
             end
             iter += 1
         end
