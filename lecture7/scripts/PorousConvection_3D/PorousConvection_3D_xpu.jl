@@ -189,7 +189,7 @@ end
 end
 
 # args = (nz=parse(Int,ARGS[1]),nt=parse(Int,ARGS[2]), do_vis=parse(Bool,ARGS[3]), save_arr=parse(Bool,ARGS[4]))
-args = (nz=63,nt=500, do_vis=true, save_arr=true,plot_residuals=true)
+args = (nz=63,nt=500, do_vis=true, save_arr=true,plot_residuals=false)
 println(args)
 println(now())
 porous_convection_3D(;args...)
