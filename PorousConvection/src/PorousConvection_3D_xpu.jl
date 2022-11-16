@@ -99,7 +99,7 @@ end
     xc,yc,zc    = av1(xn),av1(yn),av1(zn)
     θ_dτ_D      = max(lx,ly,lz)/re_D/cfl/min(dx,dy,dz)
     _θ_dτ_D     = 1.0/(1.0 + θ_dτ_D)
-    _β_dτ_D     = 1.0/(re_D*k_ηf)/(cfl*min(dx,dy,dz)*max(lx,ly,lz))
+    _β_dτ_D     = 1.0/((re_D*k_ηf)/(cfl*min(dx,dy,dz)*max(lx,ly,lz)))
     # init
     Pf          = @zeros(nx  ,ny  ,nz  )
     r_Pf        = zeros(nx  ,ny  ,nz  )
@@ -108,7 +108,7 @@ end
     qDz         = @zeros(nx  ,ny  ,nz+1)   
     # initial conditions  
     T           = Data.Array([ΔT*exp(-xc[ix]^2 -yc[iy]^2 -(zc[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz])
-    T[:,:,1]   .= -ΔT/2 ; T[:,:,end] .= ΔT/2
+    T[:,:,1]   .= ΔT/2 ; T[:,:,end] .= -ΔT/2
     T_old       = copy(T)
     dTdt        = @zeros(nx-2,ny-2,nz-2)
     r_T         = zeros(nx-2,ny-2,nz-2)
