@@ -1,6 +1,16 @@
 using Plots,Plots.Measures,Printf
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
 
+
+function compute_Pf_diffusion_2D_Teff!(qDx, k_ηf, Pf, dx, θ_dτ, qDy, dy, β_dτ)
+    begin
+        qDx[2:end - 1, :] .-= (qDx[2:end - 1, :] .+ k_ηf .* (diff(Pf, dims = 1) ./ dx)) ./ (1.0 + θ_dτ)
+        qDy[:, 2:end - 1] .-= (qDy[:, 2:end - 1] .+ k_ηf .* (diff(Pf, dims = 2) ./ dy)) ./ (1.0 + θ_dτ)
+        Pf .-= (diff(qDx, dims = 1) ./ dx .+ diff(qDy, dims = 2) ./ dy) ./ β_dτ
+    end
+end
+
+
 function Pf_diffusion_2D_Teff(nx,ny;do_check=false)
     # physics
     lx,ly   = 20.0,20.0
@@ -31,9 +41,7 @@ function Pf_diffusion_2D_Teff(nx,ny;do_check=false)
     t_tic = 0.0; niter = 0
     while err_Pf >= ϵtol && iter <= maxiter
         if iter == 11 t_tic = Base.time(); niter = 0; end
-        qDx[2:end-1,:] .-= (qDx[2:end-1,:] .+ k_ηf.*(diff(Pf,dims=1)./dx))./(1.0 + θ_dτ)
-        qDy[:,2:end-1] .-= (qDy[:,2:end-1] .+ k_ηf.*(diff(Pf,dims=2)./dy))./(1.0 + θ_dτ)
-        Pf             .-= (diff(qDx,dims=1)./dx .+ diff(qDy,dims=2)./dy)./β_dτ
+        compute_Pf_diffusion_2D_Teff!(qDx, k_ηf, Pf, dx, θ_dτ, qDy, dy, β_dτ)
         if do_check && iter%ncheck == 0
             r_Pf  .= diff(qDx,dims=1).*_dx .+ diff(qDy,dims=2).*_dy
             err_Pf = maximum(abs.(r_Pf))

@@ -1,0 +1,12 @@
+name = "PorousConvection"
+uuid = "2309c7c4-6070-11ed-34d1-4b096dd90f37"
+authors = ["Caspar Gutsche caspargutsche1@gmail.com"]
+version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
+ParallelStencil = "94395366-693c-11ea-3b26-d9b7aac5d958"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
