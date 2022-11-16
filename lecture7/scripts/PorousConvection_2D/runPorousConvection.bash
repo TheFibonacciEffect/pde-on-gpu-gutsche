@@ -2,7 +2,7 @@
 #SBATCH --job-name="PC_2D_daint"
 #SBATCH --output=PC_2D_daint.%j.o
 #SBATCH --error=PC_2D_daint.%j.e
-#SBATCH --time=00:30:00
+#SBATCH --time=03:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=normal
