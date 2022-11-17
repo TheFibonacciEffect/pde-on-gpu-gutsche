@@ -7,7 +7,7 @@ import MPI
 if !@isdefined do_save; do_save = true end
 
 # MPI functions
-@views function update_halo(A, neighbors_x, neighbors_y, comm)
+@views function update_halo!(A, neighbors_x, neighbors_y, comm)
     # Send to / receive from neighbor 1 in dimension x ("left neighbor")
     if neighbors_x[1] != MPI.MPI_PROC_NULL
         sendbuf = A[2,:] 
@@ -43,7 +43,7 @@ if !@isdefined do_save; do_save = true end
     return
 end
 
-@views function diffusion_2D_mpi(; do_save=false)
+@views function diffusion_2D_mpi(; do_save=false,nvis=5)
     # MPI
     MPI.Init()
     dims        = [0,0]
@@ -74,22 +74,23 @@ end
     xc         = [x0 + ix*dx - dx/2 - 0.5*lx  for ix=1:nx]
     yc         = [y0 + iy*dy - dy/2 - 0.5*ly  for iy=1:ny]
     C          = exp.(.-xc.^2 .-yc'.^2)
-    t_tic = 0.0
+    w_time = Float64[]
     # Time loop
     for it = 1:nt
-        if (it==11) t_tic = Base.time() end
-        if (it%5 == 0 && do_save) 
-            file = matopen("docs/ex1_task2/mpi2D_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
+        t_tic = @elapsed begin
+            qx  .= .-D*diff(C[:,2:end-1], dims=1)/dx
+            qy  .= .-D*diff(C[2:end-1,:], dims=2)/dy
+            C[2:end-1,2:end-1] .= C[2:end-1,2:end-1] .- dt*(diff(qx, dims=1)/dx .+ diff(qy, dims=2)/dy)
+            update_halo!(C, neighbors_x, neighbors_y, comm_cart)
         end
-        qx  .= .-D*diff(C[:,2:end-1], dims=1)/dx
-        qy  .= .-D*diff(C[2:end-1,:], dims=2)/dy
-        C[2:end-1,2:end-1] .= C[2:end-1,2:end-1] .- dt*(diff(qx, dims=1)/dx .+ diff(qy, dims=2)/dy)
-        update_halo(C, neighbors_x, neighbors_y, comm_cart)
+        push!(w_time,t_tic)
+        # Save to visualise
+        if (it%nvis == 0 && do_save) 
+            file = matopen("docs/l8ex1t2/mpi2D_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
+        end
     end
-    t_toc = (Base.time()-t_tic)
+    t_toc = sum(w_time[11:end])
     if (me==0) @printf("Time = %1.4e s, T_eff = %1.2f GB/s \n", t_toc, round((2/1e9*nx*ny*sizeof(lx))/(t_toc/(nt-10)), sigdigits=2)) end
-    # Save to visualise
-    
     MPI.Finalize()
     return
 end
