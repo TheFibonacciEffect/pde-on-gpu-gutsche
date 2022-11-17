@@ -7,7 +7,7 @@ end
 
 function visualise()
     lx,ly,lz = 40.0,20.0,20.0
-    aname = "out_T-255-127-127-20"
+    aname = "out_T-255-127-127-2000"
     _, nx,ny,nz,_ = split(aname,"-")
     nx = parse(Int,nx); ny = parse(Int,ny); nz = parse(Int,nz)
     T  = zeros(Float32,nx,ny,nz)
