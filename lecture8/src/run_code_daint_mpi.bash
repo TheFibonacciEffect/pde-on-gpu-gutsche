@@ -1,3 +1,4 @@
+#!/bin/bash -l
 #SBATCH --job-name="diff2D"
 #SBATCH --output=diff2D.%j.o
 #SBATCH --error=diff2D.%j.e
