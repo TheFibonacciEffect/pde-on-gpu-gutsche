@@ -1,6 +1,0 @@
-[MPIPreferences]
-_format = "1.0"
-abi = "MicrosoftMPI"
-binary = "system"
-libmpi = "msmpi"
-mpiexec = "mpiexec"

@@ -1,4 +1,5 @@
-# run: mpiexec -n 4 julia --project diffusion_2D_mpi.jl
+# run: mpiexec -n 4 julia --project l8_diffusion_2D_mpi.jl
+# mpiexecjl -n 4 julia --project=.. l8_diffusion_2D_mpi.jl
 using Plots, Printf, MAT, BenchmarkTools
 import MPI
 
@@ -85,7 +86,8 @@ end
         push!(w_time,t_tic)
         # Save to visualise
         if (it%nvis == 0 && do_save) 
-            file = matopen("docs/l8ex1t2/mpi2D_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
+            if isdir("../docs/l8ex1t2/")==false mkdir("../docs/l8ex1t2/") end
+            file = matopen("../docs/l8ex1t2/mpi2D_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
         end
     end
     t_toc = sum(w_time[11:end])
