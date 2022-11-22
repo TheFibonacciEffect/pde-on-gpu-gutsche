@@ -93,7 +93,8 @@ end
         push!(w_time,t_tic)
         # Save to visualise
         if (it%nvis == 0 && do_save) 
-            file = matopen("docs/l8ex1t3/mpi2Dgpu_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
+            if isdir("../docs/l8ex1t3/")==false mkdir("../docs/l8ex1t3/") end
+            file = matopen("../docs/l8ex1t3/mpi2Dgpu_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
         end
     end
     t_toc = sum(w_time[11:end])
