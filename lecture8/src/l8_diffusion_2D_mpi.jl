@@ -44,6 +44,10 @@ if !@isdefined do_save; do_save = true end
 end
 
 @views function diffusion_2D_mpi(; do_save=false,nvis=5)
+    if isdir("../docs/l8ex1t2_out/")==false && do_save
+        mkdir("../docs/l8ex1t2_out/") 
+    end
+    
     # MPI
     MPI.Init()
     dims        = [0,0]
@@ -86,8 +90,7 @@ end
         push!(w_time,t_tic)
         # Save to visualise
         if (it%nvis == 0 && do_save) 
-            if isdir("../docs/l8ex1t2/")==false mkdir("../docs/l8ex1t2/") end
-            file = matopen("../docs/l8ex1t2/mpi2D_out_C_$(me)_$(it).mat", "w"); write(file, "C", Array(C)); close(file) 
+            file = matopen("../docs/l8ex1t2_out/mpi2D_out_C_$(me)_$(lpad(it,4,"0")).mat", "w"); write(file, "C", Array(C)); close(file) 
         end
     end
     t_toc = sum(w_time[11:end])
