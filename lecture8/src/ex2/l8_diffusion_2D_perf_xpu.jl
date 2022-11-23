@@ -7,7 +7,7 @@ using ParallelStencil.FiniteDifferences2D
 else
     @init_parallel_stencil(Threads, Float64, 2)
 end
-using Plots, Printf
+using Plots, Printf, MAT
 
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
