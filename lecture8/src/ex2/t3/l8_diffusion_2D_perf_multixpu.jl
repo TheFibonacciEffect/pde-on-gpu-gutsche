@@ -1,3 +1,7 @@
+t0 = time()
+function print_time(line)
+    println("on line $line Elapsed time: ", time() - t0, " seconds")
+end
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
 const USE_GPU = true
 using ParallelStencil, ImplicitGlobalGrid
@@ -9,6 +13,7 @@ else
 end
 using Plots, Printf, MPI, MAT
 
+print(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
 macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
@@ -26,7 +31,7 @@ end
     D       = 1.0
     ttot    = 1e0
     # Numerics
-    nx, ny  = 126, 126 # number of grid points
+    nx, ny  = 64, 64 # number of grid points
     nout    = 20
     # Derived numerics
     me, dims = init_global_grid(nx, ny, 1,init_MPI=false)  # Initialization more...
@@ -52,6 +57,7 @@ end
         xi_g, yi_g = LinRange(dx+dx/2, Lx-dx-dx/2, nx_v), LinRange(dy+dy/2, Ly-dy-dy/2, ny_v) # inner points only
     end
     # Time loop
+    print(@__LINE__)
     for it = 1:nt
         if (it==11) t_tic = Base.time(); niter = 0 end
         @hide_communication (8, 2) begin #with @hide_communication since it was the task description
@@ -69,6 +75,7 @@ end
         end
     end
     finalize_global_grid()
+    print(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../dics/diffusion_2D_mxpu.gif", fps = 5)  end
     # Benchmarking
