@@ -26,7 +26,7 @@ end
 
 if (length(ARGS) < 1)
     # println("Usage: julia l8_vizme2D_mpi.jl <dir> <timestep>")
-    push!(ARGS,"../docs/l8ex1t2_out/mpi2D_out_C_")
+    push!(ARGS,"../docs/l8ex1t3_out/mpi2Dgpu_out_")
 end
     
 an = @animate for i in 5:5:100
