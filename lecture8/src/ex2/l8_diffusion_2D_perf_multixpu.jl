@@ -1,5 +1,5 @@
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = ARGS[1]
+const USE_GPU = true
 using ParallelStencil, ImplicitGlobalGrid
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
