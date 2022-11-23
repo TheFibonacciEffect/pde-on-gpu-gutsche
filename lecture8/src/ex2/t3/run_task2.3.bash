@@ -2,7 +2,7 @@
 #SBATCH --job-name="diff2D"
 #SBATCH --output=diff2D.%j.o
 #SBATCH --error=diff2D.%j.e
-#SBATCH --time=00:02:00
+#SBATCH --time=00:05:00
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=normal
