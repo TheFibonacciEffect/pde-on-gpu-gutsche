@@ -74,7 +74,7 @@ end
             end
         end
     end
-    finalize_global_grid()
+    
     print(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
@@ -88,7 +88,7 @@ end
         if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
         file = matopen("../../../docs/l8ex2t3/out_C_$(dims).mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
-
+    finalize_global_grid()
     return
 end
 
