@@ -14,13 +14,14 @@ Final output for fake parallelisation in 1D with n processes at $it = 200$
 
 ### Task 2
 2D diffusion of quantity C run on 4 procs using mpi on CPU evolving over it=100. 
-![diff2D_GPU](docs/l8ex1t2.gif)
+![diff2D_CPU](docs/l8ex1t2.gif)
 >***COMMAND:***  mpiexecjl -n 4 julia --project=.. l8_diffusion_2D_mpi.jl
 
 From the src directory
 
 ## Task 3
-
+2D diffusion of quantity C run on 4 procs using mpi on GPU evolving over it=100. 
+![diff2D_CPU](docs/l8ex1t3.gif)
 > From 2D to 3D
 > 1. Add CUDA.jl
 > 2. Use CUDA.Arrays
@@ -31,3 +32,11 @@ From the src directory
 
 NOTE: When you get an error that says
 ` Module XY with build ID 12345 is missing from the cache.` it is because every worker [tries to precomile the packege on it's own](https://stackoverflow.com/questions/55410326/module-does-not-support-precompilation-but-is-imported-by-a-module-that-does). Fix it by prcomiling beforehand using `]` precompile.
+
+## Exercise 2
+
+### Task 1
+
+Nothing to report!
+
+### Task 2
