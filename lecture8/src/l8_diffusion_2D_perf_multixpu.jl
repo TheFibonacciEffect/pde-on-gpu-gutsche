@@ -20,7 +20,7 @@ macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
     return
 end
 
-@views function diffusion_2D(; do_visu=false)
+@views function diffusion_2D(; do_visu=false,do_save=false)
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
@@ -84,4 +84,4 @@ end
     return
 end
 
-diffusion_2D(; do_visu=true)
+diffusion_2D(; do_visu=true,do_save=false)
