@@ -11,5 +11,5 @@
 
 module load daint-gpu
 module load Julia/1.7.2-CrayGNU-21.09-cuda
-srun julia -O3 --check-bounds=no --project=../..  diffusion_2D_perf_xpu.jl true
-srun julia -O3 --check-bounds=no --project=../..  diffusion_2D_perf_xpu.jl false
+srun julia -O3 --check-bounds=no --project=../..  l8_diffusion_2D_perf_xpu.jl true
+srun julia -O3 --check-bounds=no --project=../..  l8_diffusion_2D_perf_xpu.jl false
