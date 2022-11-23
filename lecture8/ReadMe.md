@@ -28,3 +28,6 @@ From the src directory
 > 4. Create section where GPU_ID is selected
 
 >***COMMAND:***  mpiexecjl -n 4 julia --project=.. l8_diffusion_2D_mpi_gpu.jl
+
+NOTE: When you get an error that says
+` Module XY with build ID 12345 is missing from the cache.` it is because every worker [tries to precomile the packege on it's own](https://stackoverflow.com/questions/55410326/module-does-not-support-precompilation-but-is-imported-by-a-module-that-does). Fix it by prcomiling beforehand using `]` precompile.
