@@ -1,9 +1,5 @@
 using Test, MAT
 
-gputrue = []
-gpufalse = []
-mpigpu = []
-
 file = matopen("../docs/l8ex2t2/gputrue_out.mat")
 gputrue = read(file, "C"); close(file)
 file = matopen("../docs/l8ex2t2/gpufalse_out.mat")
