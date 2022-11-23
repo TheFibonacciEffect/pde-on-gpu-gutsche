@@ -1,4 +1,3 @@
-
 #!/bin/bash -l
 #SBATCH --job-name="Diff2D_xpu"
 #SBATCH --output=Diff2D_xpu.%j.o
