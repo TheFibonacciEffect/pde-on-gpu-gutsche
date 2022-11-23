@@ -1,10 +1,11 @@
+print("beginning Execution")
 t0 = time()
 function print_time(line)
     println("on line $line Elapsed time: ", time() - t0, " seconds")
 end
-print(@__LINE__)
+print_time(@__LINE__)
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil, ImplicitGlobalGrid
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -14,7 +15,7 @@ else
 end
 using Plots, Printf, MPI, MAT
 
-print(@__LINE__)
+print_time(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
 macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
@@ -49,16 +50,16 @@ end
     size_C1_2, size_C2_2 = size(C,1)-2, size(C,2)-2
     t_tic = 0.0; niter = 0
     # Visualisation preparation
+    C_v   = zeros(nx_v, ny_v) # global array for visu and output
     if do_visu
         if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
         nx_v, ny_v = (nx-2)*dims[1], (ny-2)*dims[2]
         if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
-        C_v   = zeros(nx_v, ny_v) # global array for visu
         C_inn = zeros(nx-2, ny-2) # no halo local array for visu
         xi_g, yi_g = LinRange(dx+dx/2, Lx-dx-dx/2, nx_v), LinRange(dy+dy/2, Ly-dy-dy/2, ny_v) # inner points only
     end
     # Time loop
-    print(@__LINE__)
+    print_time(@__LINE__)
     for it = 1:nt
         if (it==11) t_tic = Base.time(); niter = 0 end
         @hide_communication (8, 2) begin #with @hide_communication since it was the task description
@@ -76,7 +77,7 @@ end
         end
     end
     
-    print(@__LINE__)
+    print_time(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
     # Benchmarking
