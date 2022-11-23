@@ -1,5 +1,5 @@
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = true
+const USE_GPU = ARGS[1]
 using ParallelStencil, ImplicitGlobalGrid
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -78,7 +78,7 @@ end
     T_eff = A_eff/t_it                   # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.2f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
     if (do_save && me==0) 
-        file = matopen("../docs/l8ex2t2/out_C_$(dims)_$(USE_GPU).mat", "w"); write(file, "C", Array(C_v)); close(file) 
+        file = matopen("../docs/l8ex2t2_$(USE_GPU)/out_C_$(dims).mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
 
     return

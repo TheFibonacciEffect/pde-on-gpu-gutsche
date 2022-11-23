@@ -24,7 +24,7 @@ end
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
-    ttot    = 1e0
+    ttot    = 1.0
     # Numerics
     nx, ny  = 126, 126 # number of grid points
     nout    = 20
