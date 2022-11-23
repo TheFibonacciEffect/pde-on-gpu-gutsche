@@ -8,11 +8,13 @@ print_time(@__LINE__)
 const USE_GPU = false
 using ParallelStencil, ImplicitGlobalGrid
 using ParallelStencil.FiniteDifferences2D
+print_time(@__LINE__)
 @static if USE_GPU
     @init_parallel_stencil(CUDA, Float64, 2)
 else
     @init_parallel_stencil(Threads, Float64, 2)
 end
+print_time(@__LINE__)
 using Plots, Printf, MPI, MAT
 
 print_time(@__LINE__)
