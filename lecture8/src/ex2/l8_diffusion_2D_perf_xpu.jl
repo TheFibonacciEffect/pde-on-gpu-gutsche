@@ -1,4 +1,5 @@
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
+t0 = time()
 const USE_GPU = parse(Bool,ARGS[1])
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
@@ -9,7 +10,7 @@ else
 end
 using Plots, Printf, MAT
 
-print("time after init_parallel_stencil $(time())")
+print("time after init_parallel_stencil $(time()-t0)")
 
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
@@ -56,7 +57,7 @@ end
             heatmap(xc, yc, Array(C)'; opts...); frame(anim)
         end
     end
-    print("time after calculation $(time())")
+    print("time after calculation $(time()-t0)")
     t_toc = Base.time() - t_tic
     A_eff = 2/1e9*nx*ny*sizeof(Float64)  # Effective main memory access per iteration [GB]
     t_it  = t_toc/niter                  # Execution time per iteration [s]
@@ -64,7 +65,7 @@ end
     @printf("Time = %1.3f sec, T_eff = %1.2f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
     if do_visu gif(anim, "diffusion_2D_xpu_gpu$(USE_GPU).gif", fps = 5)  end
     if do_save file = matopen("../../docs/l8ex2t2_out/gpu$(USE_GPU)_out.mat", "w"); write(file, "C", Array(C)); close(file) end
-    print("time after save $(time())")
+    print("time after save $(time()-t0)")
     return
 end
 

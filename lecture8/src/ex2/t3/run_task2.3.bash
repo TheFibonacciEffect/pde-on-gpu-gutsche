@@ -1,7 +1,7 @@
 #!/bin/bash -l
-#SBATCH --job-name="diff2D"
-#SBATCH --output=diff2D.%j.o
-#SBATCH --error=diff2D.%j.e
+#SBATCH --job-name="task2.3"
+#SBATCH --output=task2.3.%j.o
+#SBATCH --error=task2.3.%j.e
 #SBATCH --time=00:05:00
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=1
