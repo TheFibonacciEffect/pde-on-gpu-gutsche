@@ -1,22 +1,3 @@
-print("beginning Execution")
-t0 = time()
-function print_time(line)
-    println("on line $line Elapsed time: ", time() - t0, " seconds")
-end
-print_time(@__LINE__)
-# juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = true
-using ParallelStencil, ImplicitGlobalGrid
-using ParallelStencil.FiniteDifferences2D
-print_time(@__LINE__)
-@static if USE_GPU
-    @init_parallel_stencil(CUDA, Float64, 2)
-else
-    @init_parallel_stencil(Threads, Float64, 2)
-end
-print_time(@__LINE__)
-using Plots, Printf, MPI, MAT
-
 print_time(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
@@ -29,11 +10,10 @@ macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
     return
 end
 
-@views function diffusion_2D(; do_visu=false,do_save=false)
+@views function diffusion_2D(; do_visu=false,do_save=false,ttot = 1e-4)
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
-    ttot    = 1e-4
     # Numerics
     nx, ny  = 64, 64 # number of grid points
     nout    = 20
@@ -82,6 +62,7 @@ end
     print_time(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
+    finalize_global_grid()
     # Benchmarking
     t_toc = Base.time() - t_tic
     A_eff = 2/1e9*nx*ny*sizeof(Float64)  # Effective main memory access per iteration [GB]
@@ -92,8 +73,5 @@ end
         if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
         file = matopen("../../../docs/l8ex2t3/mpigpu_out.mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
-    finalize_global_grid()
-    return
+    return t_toc
 end
-
-diffusion_2D(; do_visu=false,do_save=true)
