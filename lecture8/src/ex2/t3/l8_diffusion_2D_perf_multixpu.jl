@@ -2,6 +2,7 @@ t0 = time()
 function print_time(line)
     println("on line $line Elapsed time: ", time() - t0, " seconds")
 end
+print(@__LINE__)
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
 const USE_GPU = true
 using ParallelStencil, ImplicitGlobalGrid
@@ -86,7 +87,7 @@ end
     @printf("Time = %1.3f sec, T_eff = %1.2f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
     if (do_save && me==0)
         if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
-        file = matopen("../../../docs/l8ex2t3/out_C_$(dims).mat", "w"); write(file, "C", Array(C_v)); close(file) 
+        file = matopen("../../../docs/l8ex2t3/mpigpu_out.mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
     finalize_global_grid()
     return
