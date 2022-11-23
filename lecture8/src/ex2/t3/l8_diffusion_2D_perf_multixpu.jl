@@ -77,11 +77,11 @@ end
     t_it  = t_toc/niter                  # Execution time per iteration [s]
     T_eff = A_eff/t_it                   # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.2f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
-    if (do_save && me==0) 
-        file = matopen("../docs/l8ex2t2_$(USE_GPU)/out_C_$(dims).mat", "w"); write(file, "C", Array(C_v)); close(file) 
+    if (do_save && me==0)
+        file = matopen("../../../docs/l8ex2t3/out_C_$(dims).mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
 
     return
 end
 
-diffusion_2D(; do_visu=true,do_save=false)
+diffusion_2D(; do_visu=true,do_save=true)
