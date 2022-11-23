@@ -3,12 +3,12 @@ using Plots, MAT
 
 nprocs = (2, 2) # nprocs (x, y) dim
 
-@views function vizme2D_mpi(nprocs)
+@views function vizme2D_mpi(dir,nprocs,timestep)
     C  = []
     ip = 1
     for ipx = 1:nprocs[1]
         for ipy = 1:nprocs[2]
-            file = matopen("mpi2D_out_C_$(ip-1).mat"); C_loc = read(file, "C"); close(file)
+            file = matopen(string(dir,"mpi2D_out_C_$(ip-1)_$timestep.mat")); C_loc = read(file, "C"); close(file)
             nx_i, ny_i = size(C_loc,1)-2, size(C_loc,2)-2
             ix1, iy1   = 1+(ipx-1)*nx_i, 1+(ipy-1)*ny_i
             if (ip==1)  C = zeros(nprocs[1]*nx_i, nprocs[2]*ny_i)  end
@@ -24,4 +24,8 @@ nprocs = (2, 2) # nprocs (x, y) dim
     return
 end
 
-vizme2D_mpi(nprocs)
+an = @animate for i in 5:5:100
+    vizme2D_mpi("../docs/l8ex1t2_out/",nprocs,lpad(i,4,'0'))
+end
+
+gif(an, "../docs/l8ex1t2.gif", fps = 5)
