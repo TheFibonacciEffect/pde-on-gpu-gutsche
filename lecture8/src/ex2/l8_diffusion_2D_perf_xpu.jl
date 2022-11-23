@@ -1,5 +1,5 @@
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = true
+const USE_GPU = ARGS[1]
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
@@ -58,7 +58,7 @@ end
     t_it  = t_toc/niter                  # Execution time per iteration [s]
     T_eff = A_eff/t_it                   # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.2f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
-    if do_visu gif(anim, "diffusion_2D_xpu.gif", fps = 5)  end
+    if do_visu gif(anim, "diffusion_2D_xpu_gpu$USE_GPU.gif", fps = 5)  end
     return
 end
 
