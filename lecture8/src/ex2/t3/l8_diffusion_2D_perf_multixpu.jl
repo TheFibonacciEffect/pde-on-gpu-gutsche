@@ -34,7 +34,7 @@ end
     nx, ny  = 64, 64 # number of grid points
     nout    = 20
     # Derived numerics
-    me, dims = init_global_grid(nx, ny, 1,init_MPI=false)  # Initialization more...
+    me, dims = init_global_grid(nx, ny, 1)  # Initialization more...
     dx, dy  = Lx/nx_g(), Ly/ny_g()
     dt      = min(dx, dy)^2/D/4.1
     nt      = cld(ttot, dt)
