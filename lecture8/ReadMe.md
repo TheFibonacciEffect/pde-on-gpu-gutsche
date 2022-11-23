@@ -6,14 +6,15 @@
 
 #### 2 Processes
 Final output for fake parallelisation in 1D with two processes at $it = 200$
-![diff2D](docs/l8ex1t1_2procs.png)
+![diff1D_3P](docs/l8ex1t1_2procs.png)
 
 #### n Processes
 Final output for fake parallelisation in 1D with n processes at $it = 200$
-![diff2D](docs/l8ex1t1_nprocs.png)
+![diff1D_nP](docs/l8ex1t1_nprocs.png)
 
 ### Task 2
-
+2D diffusion of quantity C run on 4 procs using mpi on CPU evolving over it=100. 
+![diff2D_GPU](docs/l8ex1t2.gif)
 >***COMMAND:***  mpiexecjl -n 4 julia --project=.. l8_diffusion_2D_mpi.jl
 
 From the src directory
@@ -25,3 +26,5 @@ From the src directory
 > 2. Use CUDA.Arrays
 > 3. To send/recieve data from GPU memory to send buffer use copyto!() function in updatehalo!()
 > 4. Create section where GPU_ID is selected
+
+>***COMMAND:***  mpiexecjl -n 4 julia --project=.. l8_diffusion_2D_mpi_gpu.jl
