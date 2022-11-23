@@ -77,7 +77,7 @@ end
     finalize_global_grid()
     print(@__LINE__)
     # Create animation
-    if (do_visu && me==0) gif(anim, "../dics/diffusion_2D_mxpu.gif", fps = 5)  end
+    if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
     # Benchmarking
     t_toc = Base.time() - t_tic
     A_eff = 2/1e9*nx*ny*sizeof(Float64)  # Effective main memory access per iteration [GB]
@@ -85,10 +85,11 @@ end
     T_eff = A_eff/t_it                   # Effective memory throughput [GB/s]
     @printf("Time = %1.3f sec, T_eff = %1.2f GB/s (niter = %d)\n", t_toc, round(T_eff, sigdigits=3), niter)
     if (do_save && me==0)
+        if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
         file = matopen("../../../docs/l8ex2t3/out_C_$(dims).mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
 
     return
 end
 
-diffusion_2D(; do_visu=true,do_save=true)
+diffusion_2D(; do_visu=false,do_save=true)
