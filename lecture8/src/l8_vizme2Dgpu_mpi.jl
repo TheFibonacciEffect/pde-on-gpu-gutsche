@@ -30,7 +30,7 @@ if (length(ARGS) < 1)
 end
     
 an = @animate for i in 5:5:100
-    vizme2D_mpi(ARGS[1],nprocs,lpad(i,4,'0'))
+    vizme2D_mpi(ARGS[1],nprocs,lpad(i,3,'0'))
 end
 
 gif(an, "../docs/$(split(ARGS[1],"_")[1]).gif", fps = 5)
