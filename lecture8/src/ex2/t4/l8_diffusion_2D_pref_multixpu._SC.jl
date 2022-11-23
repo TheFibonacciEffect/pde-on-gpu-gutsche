@@ -98,7 +98,7 @@ function main()
     end
 
     #plot the results
-    plt = plot(ni,T_eff,
+    plt = plot(nx,T_eff,
         title = "Effective memory throughput Tesla P100",
         xlabel="nx",
         ylabel="T_eff [GB/s]",
@@ -108,3 +108,5 @@ function main()
     )
     savefig("../../../docs/StrongScaling.png")
 end
+
+main()
