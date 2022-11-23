@@ -5,7 +5,7 @@ function print_time(line)
 end
 print_time(@__LINE__)
 # juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = false
+const USE_GPU = true
 using ParallelStencil, ImplicitGlobalGrid
 using ParallelStencil.FiniteDifferences2D
 print_time(@__LINE__)
