@@ -1,3 +1,4 @@
+print("run_l8_diffusion_2D_perf_multixpu.jl")
 print("beginning Execution")
 t0 = time()
 function print_time(line)
