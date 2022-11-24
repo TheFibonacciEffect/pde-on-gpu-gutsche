@@ -1,3 +1,4 @@
+ENV["GKSwstype"]="nul";
 using Plots
 
 # read csv
