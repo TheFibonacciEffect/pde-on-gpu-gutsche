@@ -1,4 +1,3 @@
-using GC
 print_time(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
