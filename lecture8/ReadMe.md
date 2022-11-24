@@ -42,5 +42,9 @@ Nothing to report!
 ### Task 2
 
 ### Task 3
-We have set the time to 1e-6 in order to save compitation ressources
+We have set the time to 1 in order to save compitation ressources
 The test/runtest file tests if the output of task 2 and task 3 are equilvalent
+
+## Task 5
+Weak scaling
+![weak scaling](docs/weak_scaling.png)
