@@ -46,5 +46,9 @@ We have set the time to 1 in order to save compitation ressources
 The test/runtest file tests if the output of task 2 and task 3 are equilvalent
 
 ## Task 5
-Weak scaling
+The weak scaling gave the follwing result, where t is the time normailzed by the time for 1 process
 ![weak scaling](docs/weak_scaling.png)
+When devided by the number of processes it gives the following result:
+![weak scaling dev by nprocs](docs/weak_scaling%20nprocs.png)
+The result is not as expected, because the execution time should stay the same if the code scales well. 
+We have ensured that garbage collection is disabled during the time loop.
