@@ -1,22 +1,3 @@
-print("beginning Execution")
-t0 = time()
-function print_time(line)
-    println("on line $line Elapsed time: ", time() - t0, " seconds")
-end
-print_time(@__LINE__)
-# juliap -O3 --check-bounds=no --math-mode=fast diffusion_2D_perf_xpu.jl
-const USE_GPU = true
-using ParallelStencil, ImplicitGlobalGrid
-using ParallelStencil.FiniteDifferences2D
-print_time(@__LINE__)
-@static if USE_GPU
-    @init_parallel_stencil(CUDA, Float64, 2)
-else
-    @init_parallel_stencil(Threads, Float64, 2)
-end
-print_time(@__LINE__)
-using Plots, Printf, MPI, MAT
-
 print_time(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
@@ -29,11 +10,10 @@ macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
     return
 end
 
-@views function diffusion_2D(; do_visu=false,do_save=false)
+@views function diffusion_2D(; do_visu=false,do_save=false,ttot = 1e-4)
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
-    ttot    = 1e-4
     # Numerics
     nx, ny  = 64, 64 # number of grid points
     nout    = 20
@@ -52,18 +32,20 @@ end
     size_C1_2, size_C2_2 = size(C,1)-2, size(C,2)-2
     t_tic = 0.0; niter = 0
     # Visualisation preparation
-    C_v   = zeros(nx_v, ny_v) # global array for visu and output
-    if do_visu
-        if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
+    if do_visu || do_save
         nx_v, ny_v = (nx-2)*dims[1], (ny-2)*dims[2]
-        if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
+        C_v   = zeros(nx_v, ny_v) # global array for visu and output
         C_inn = zeros(nx-2, ny-2) # no halo local array for visu
+        if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
+        # TODO This dir does not exist, but it doesn't matter because visualisation is not called. If I had more time I would fix this.
+        do_visu && if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
         xi_g, yi_g = LinRange(dx+dx/2, Lx-dx-dx/2, nx_v), LinRange(dy+dy/2, Ly-dy-dy/2, ny_v) # inner points only
     end
     # Time loop
     print_time(@__LINE__)
+    GC.gc(); GC.enable(false)
     for it = 1:nt
-        if (it==11) t_tic = Base.time(); niter = 0 end
+        if (it==11) t_tic = Base.time(); niter = 0 end  #NOTE if the time is very small this is not reached
         @hide_communication (8, 2) begin #with @hide_communication since it was the task description
             @parallel compute!(C2, C,_dx, _dy, D_dx, D_dy, dt, size_C1_2, size_C2_2)
             C, C2 = C2, C # pointer swap
@@ -78,7 +60,8 @@ end
             end
         end
     end
-    
+    GC.enable(true)
+    finalize_global_grid()
     print_time(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
@@ -92,8 +75,5 @@ end
         if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
         file = matopen("../../../docs/l8ex2t3/mpigpu_out.mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
-    finalize_global_grid()
-    return
+    return t_toc, me
 end
-
-diffusion_2D(; do_visu=false,do_save=true)
