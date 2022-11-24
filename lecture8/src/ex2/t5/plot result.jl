@@ -10,7 +10,7 @@ close(fid)
 nprocs = Array{Int}(undef,length(lines))
 t = Array{Float64}(undef,length(lines))
 for (i,line) in enumerate(lines)
-    nprocs[i],t[i] = split(line,",") |> x -> parse.(Int,x)
+    nprocs[i],t[i] = split(line,",") |> x -> parse.(Float64,x)
 end
 
 # plot
