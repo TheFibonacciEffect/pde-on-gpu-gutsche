@@ -1,3 +1,4 @@
+using GC
 print_time(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
@@ -43,6 +44,7 @@ end
     end
     # Time loop
     print_time(@__LINE__)
+    GC.gc(); GC.enable(false)
     for it = 1:nt
         if (it==11) t_tic = Base.time(); niter = 0 end  #NOTE if the time is very small this is not reached
         @hide_communication (8, 2) begin #with @hide_communication since it was the task description
@@ -59,11 +61,11 @@ end
             end
         end
     end
-    
+    GC.enable(true)
+    finalize_global_grid()
     print_time(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
-    finalize_global_grid()
     # Benchmarking
     t_toc = Base.time() - t_tic
     A_eff = 2/1e9*nx*ny*sizeof(Float64)  # Effective main memory access per iteration [GB]
