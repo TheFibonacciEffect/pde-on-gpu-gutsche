@@ -25,7 +25,7 @@ macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
     return
 end
 
-@views function diffusion_2D(nx, ny; do_visu=false,do_save=false)
+@views function diffusion_2D(nx, ny; do_visu=false,do_save=false,do_init_MPI=true)
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
@@ -33,7 +33,7 @@ end
     # Numerics
     nout    = 20
     # Derived numerics
-    me, dims = init_global_grid(nx, ny, 1)  # Initialization more...
+    me, dims = init_global_grid(nx, ny, 1, init_MPI=do_init_MPI)  # Initialization more...
     dx, dy  = Lx/nx_g(), Ly/ny_g()
     dt      = min(dx, dy)^2/D/4.1
     nt      = cld(ttot, dt)
@@ -47,16 +47,16 @@ end
     size_C1_2, size_C2_2 = size(C,1)-2, size(C,2)-2
     t_tic = 0.0; niter = 0
     # Visualisation preparation
-    C_v   = zeros(nx_v, ny_v) # global array for visu and output
     if do_visu || do_save
-        if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
         nx_v, ny_v = (nx-2)*dims[1], (ny-2)*dims[2]
-        if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
+        C_v   = zeros(nx_v, ny_v) # global array for visu and output
         C_inn = zeros(nx-2, ny-2) # no halo local array for visu
+        if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
+        # TODO This dir does not exist, but it doesn't matter because visualisation is not called. If I had more time I would fix this.
+        do_visu && if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
         xi_g, yi_g = LinRange(dx+dx/2, Lx-dx-dx/2, nx_v), LinRange(dy+dy/2, Ly-dy-dy/2, ny_v) # inner points only
     end
-    # Time loop
-    
+        # Time loop
     for it = 1:nt
         if (it==11) t_tic = Base.time(); niter = 0 end
         @hide_communication (8, 2) begin #with @hide_communication since it was the task description
@@ -73,8 +73,7 @@ end
             end
         end
     end
-    
-    
+    finalize_global_grid()
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
     # Benchmarking
@@ -87,18 +86,17 @@ end
         if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
         file = matopen("../../../docs/l8ex2t3/mpigpu_out.mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
-    finalize_global_grid()
     return T_eff
 end
 
 function main()
+    do_init_MPI=true
     nx = ny = 16 * 2 .^ (1:10)
     Teff = []
-
     for i in eachindex(nx)
-        push!(Teff,diffusion_2D(nx[i],ny[i]; do_visu=false,do_save=false))
+        push!(Teff,diffusion_2D(nx[i],ny[i]; do_visu=false,do_save=false,do_init_MPI=do_init_MPI))
+        if do_init_MPI do_init_MPI=false end
     end
-
     #plot the results
     plt = plot(nx,T_eff,
         title = "Effective memory throughput Tesla P100 np = 1",
