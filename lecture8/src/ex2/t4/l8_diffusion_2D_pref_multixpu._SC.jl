@@ -46,7 +46,7 @@ end
     t_tic = 0.0; niter = 0
     # Visualisation preparation
     C_v   = zeros(nx_v, ny_v) # global array for visu and output
-    if do_visu
+    if do_visu || do_save
         if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
         nx_v, ny_v = (nx-2)*dims[1], (ny-2)*dims[2]
         if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
@@ -99,14 +99,14 @@ function main()
 
     #plot the results
     plt = plot(nx,T_eff,
-        title = "Effective memory throughput Tesla P100",
+        title = "Effective memory throughput Tesla P100 np = 1",
         xlabel="nx",
         ylabel="T_eff [GB/s]",
         marker = 2,
         markershape=:circle,
         markersize=10
     )
-    savefig("../../../docs/StrongScaling.png")
+    savefig(plt,"../../../docs/StrongScaling.png")
 end
 
 main()
