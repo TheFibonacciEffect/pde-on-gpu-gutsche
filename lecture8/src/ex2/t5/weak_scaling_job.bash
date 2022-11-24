@@ -15,3 +15,4 @@ export MPICH_RDMA_ENABLED_CUDA=1
 export IGG_CUDAAWARE_MPI=1
 
 srun -n4 bash -c 'LD_PRELOAD="/usr/lib64/libcuda.so:/usr/local/cuda/lib64/libcudart.so" julia -O3 --check-bounds=no --project=../../.. l8_diffusion_2D_perf_multixpu.jl'
+srun julia --project=../../.. "plot result.jl"
