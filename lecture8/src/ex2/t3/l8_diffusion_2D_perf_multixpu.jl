@@ -44,7 +44,7 @@ end
     # Time loop
     print_time(@__LINE__)
     for it = 1:nt
-        if (it==11) t_tic = Base.time(); niter = 0 end
+        if (it==11) t_tic = Base.time(); niter = 0 end  #NOTE if the time is very small this is not reached
         @hide_communication (8, 2) begin #with @hide_communication since it was the task description
             @parallel compute!(C2, C,_dx, _dy, D_dx, D_dy, dt, size_C1_2, size_C2_2)
             C, C2 = C2, C # pointer swap
