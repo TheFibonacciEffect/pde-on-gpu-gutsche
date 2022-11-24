@@ -37,7 +37,8 @@ end
         C_v   = zeros(nx_v, ny_v) # global array for visu and output
         C_inn = zeros(nx-2, ny-2) # no halo local array for visu
         if (nx_v*ny_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
-        if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
+        # TODO This dir does not exist, but it doesn't matter because visualisation is not called. If I had more time I would fix this.
+        do_visu && if (me==0) ENV["GKSwstype"]="nul"; if isdir("../docs/viz2D_mxpu_out")==false mkdir("../docs/viz2D_mxpu_out") end; loadpath = "../docs/viz2D_mxpu_out/"; anim = Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
         xi_g, yi_g = LinRange(dx+dx/2, Lx-dx-dx/2, nx_v), LinRange(dy+dy/2, Ly-dy-dy/2, ny_v) # inner points only
     end
     # Time loop
