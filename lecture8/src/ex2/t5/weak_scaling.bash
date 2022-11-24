@@ -6,4 +6,4 @@ do
     sbatch --nodes=$i weak_scaling_job.bash $i
 done
 
-julia --project=../../.. "plot result.jl"
+# julia --project=../../.. "plot result.jl"
