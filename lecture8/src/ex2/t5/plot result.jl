@@ -15,7 +15,7 @@ for (i,line) in enumerate(lines)
 end
 t_norm = t./t[1]
 # plot
-p = plot(nprocs,t_norm,marker=:circle,legend=false)
-plot!(p, xlabel="nprocs", ylabel="normlized t", title="Weak scaling")
+p = plot(nprocs,t_norm./nprocs,marker=:circle,legend=false)
+plot!(p, xlabel="nprocs", ylabel="normlized t/nprocs", title="Weak scaling")
 plot!(p, size=(400,400))
 savefig(p, "weak_scaling.png")
