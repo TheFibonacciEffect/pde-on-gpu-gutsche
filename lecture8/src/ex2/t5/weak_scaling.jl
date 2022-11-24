@@ -20,7 +20,7 @@ print_time(@__LINE__)
 
 include("../t3/l8_diffusion_2D_perf_multixpu.jl")
 
-t = diffusion_2D(; do_visu=false,do_save=false,ttot = 1)
+t,me = diffusion_2D(; do_visu=false,do_save=false,ttot = 1)
 
 # write to file
 sleep(0.1*me)

@@ -75,5 +75,5 @@ end
         if isdir("../../../docs/l8ex2t3")==false mkdir("../../../docs/l8ex2t3") end
         file = matopen("../../../docs/l8ex2t3/mpigpu_out.mat", "w"); write(file, "C", Array(C_v)); close(file) 
     end
-    return t_toc
+    return t_toc, me
 end
