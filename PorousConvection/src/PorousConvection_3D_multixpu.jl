@@ -166,13 +166,13 @@ end
                 @parallel compute_r!(r_Pf,r_T,qDx,qDy,qDz,qTx,qTy,qTz,dTdt,_dx,_dy,_dz)
                 err_D = max_g(abs.(r_Pf))
                 err_T = max_g(abs.(r_T))
-                @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
+                me == 0 &&  @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
             end
             iter += 1
         end
-        @printf("it = %d, iter/nx_g()=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx_g(),err_D,err_T)
+        me == 0 && @printf("it = %d, iter/nx_g()=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx_g(),err_D,err_T)
         # visualisation
-        if do_viz && (it % nvis == 0)
+        if me == 0 && do_viz && (it % nvis == 0)
             p1=heatmap(xc,zc,Array(T)[:,ceil(Int,ny/2),:]';xlims=(xc[1],xc[end]),ylims=(zc[1],zc[end]),aspect_ratio=1,c=:turbo)
             # display(p1)
             png(p1,@sprintf("viz3D_out/%04d.png",iframe+=1))

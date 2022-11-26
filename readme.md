@@ -28,7 +28,7 @@ import MPI```
   - [x] Moving to the time loop, add halo update function update_halo! after the kernel that computes the fluid fluxes. You can additionally wrap it in the @hide_communication block to enable communication/computation overlap (using b_width defined above)
   - [x] Apply a similar step to the temperature update, where you can also include boundary condition computation as following (⚠️ no other construct is currently allowed)
   - [x] Use now the max_g function instead of maximum to collect the global maximum among all local arrays spanning all MPI processes.
-  - [ ] Make sure all printing statements are only executed by me==0 in order to avoid each MPI process to print to screen, and use nx_g() instead of local nx in the printed statements when assessing the iteration per number of grid points.
+  - [x] Make sure all printing statements are only executed by me==0 in order to avoid each MPI process to print to screen, and use nx_g() instead of local nx in the printed statements when assessing the iteration per number of grid points.
   - [ ] Update the visualisation and output saving part
   - [ ] Finalise the global grid before returning from the main function
   - [ ] Make sure to have set following parameters:
