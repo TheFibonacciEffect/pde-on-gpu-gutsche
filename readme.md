@@ -14,20 +14,20 @@ The homework for every week can be found in the corresponding folder
 If you have any questions write a mail to `cgutsche@ethz.ch`
 
 ## TODO
-- [ ] You'll find a version of the PorousConvection_3D_xpu.jl code in the solutions folder on Polybox after exercises deadline if needed to get you started.
+- [x] You'll find a version of the PorousConvection_3D_xpu.jl code in the solutions folder on Polybox after exercises deadline if needed to get you started.
 - [ ] Create a multi-xPU version of your thermal porous convection 3D xPU code you finalised in lecture 7
-  - [ ] Copy your working PorousConvection_3D_xpu.jl code developed for the exercises in Lecture 7 and rename it PorousConvection_3D_multixpu.jl.
-  - [ ] Add at the beginning of the code ```using ImplicitGlobalGrid
+  - [x] Copy your working PorousConvection_3D_xpu.jl code developed for the exercises in Lecture 7 and rename it PorousConvection_3D_multixpu.jl.
+  - [x] Add at the beginning of the code ```using ImplicitGlobalGrid
 import MPI```
-  - [ ] Also add global maximum computation using MPI reduction function
-  - [ ] max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
-  - [ ] In the # numerics section, initialise the global grid right after defining nx,ny,nz and use now global grid nx_g(),ny_g() and nz_g() for defining maxiter and ncheck, as well as in any other places when needed.
-  - [ ] Modify the temperature initialisation using ImplicitGlobalGrid's global coordinate helpers (x_g, etc...), including one internal boundary condition update (update halo):
-  - [ ] Prepare for visualisation, making sure only me==0 creates the output directory. Also, prepare an array for storing inner points only (no halo) T_inn as well as global array to gather subdomains T_v
-  - [ ] Use the max_g function in the timestep dt definition (instead of maximum) as one now needs to gather the global maximum among all MPI processes.
-  - [ ] Moving to the time loop, add halo update function update_halo! after the kernel that computes the fluid fluxes. You can additionally wrap it in the @hide_communication block to enable communication/computation overlap (using b_width defined above)
-  - [ ] Apply a similar step to the temperature update, where you can also include boundary condition computation as following (⚠️ no other construct is currently allowed)
-  - [ ] Use now the max_g function instead of maximum to collect the global maximum among all local arrays spanning all MPI processes.
+  - [x] Also add global maximum computation using MPI reduction function
+  - [x] max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
+  - [x] In the # numerics section, initialise the global grid right after defining nx,ny,nz and use now global grid nx_g(),ny_g() and nz_g() for defining maxiter and ncheck, as well as in any other places when needed.
+  - [x] Modify the temperature initialisation using ImplicitGlobalGrid's global coordinate helpers (x_g, etc...), including one internal boundary condition update (update halo):
+  - [x] Prepare for visualisation, making sure only me==0 creates the output directory. Also, prepare an array for storing inner points only (no halo) T_inn as well as global array to gather subdomains T_v
+  - [x] Use the max_g function in the timestep dt definition (instead of maximum) as one now needs to gather the global maximum among all MPI processes.
+  - [x] Moving to the time loop, add halo update function update_halo! after the kernel that computes the fluid fluxes. You can additionally wrap it in the @hide_communication block to enable communication/computation overlap (using b_width defined above)
+  - [x] Apply a similar step to the temperature update, where you can also include boundary condition computation as following (⚠️ no other construct is currently allowed)
+  - [x] Use now the max_g function instead of maximum to collect the global maximum among all local arrays spanning all MPI processes.
   - [ ] Make sure all printing statements are only executed by me==0 in order to avoid each MPI process to print to screen, and use nx_g() instead of local nx in the printed statements when assessing the iteration per number of grid points.
   - [ ] Update the visualisation and output saving part
   - [ ] Finalise the global grid before returning from the main function
