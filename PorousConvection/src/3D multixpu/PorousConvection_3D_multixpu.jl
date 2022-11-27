@@ -1,6 +1,6 @@
 const USE_GPU = true
 using ParallelStencil, ImplicitGlobalGrid
-using ParallelStencil.FiniteDifferences2D
+using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
     @init_parallel_stencil(CUDA, Float64, 3)
 else
