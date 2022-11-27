@@ -9,6 +9,9 @@ Activate the environment using
 (SomeProject) pkg> instantiate
 ```
 
+NOTE: When you get an error that says
+` Module XY with build ID 12345 is missing from the cache.` it is because every worker [tries to precomile the packege on it's own](https://stackoverflow.com/questions/55410326/module-does-not-support-precompilation-but-is-imported-by-a-module-that-does). Fix it by prcomiling beforehand using `]` precompile.
+
 The homework for every week can be found in the corresponding folder
 
 If you have any questions write a mail to `cgutsche@ethz.ch`
