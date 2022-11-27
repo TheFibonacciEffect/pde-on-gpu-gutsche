@@ -172,13 +172,16 @@ end
         end
         me == 0 && @printf("it = %d, iter/nx_g()=%.1f, err_D=%1.3e, err_T=%1.3e\n",it,iter/nx_g(),err_D,err_T)
         # visualisation
-        if me == 0 && do_viz && (it % nvis == 0)
-            p1=heatmap(xc,zc,Array(T)[:,ceil(Int,ny/2),:]';xlims=(xc[1],xc[end]),ylims=(zc[1],zc[end]),aspect_ratio=1,c=:turbo)
-            # display(p1)
-            png(p1,@sprintf("viz3D_out/%04d.png",iframe+=1))
-            save_array("out_T",convert.(Float32,Array(T)))
-            save_array("out_Pf",convert.(Float32,Array(Pf)))
+        if do_visu && (it % nvis == 0)
+            T_inn .= Array(T)[2:end-1,2:end-1,2:end-1]; gather!(T_inn, T_v)
+            if me==0
+                p1=heatmap(xi_g,zi_g,T_v[:,ceil(Int,ny_g()/2),:]';xlims=(xi_g[1],xi_g[end]),ylims=(zi_g[1],zi_g[end]),clims=(-100,100),aspect_ratio=1,c=:turbo)
+                # display(p1)
+                png(p1,@sprintf("../docs/l9ex1t1/PC_2D_$(lpad(it,4,"0")).mat.png",iframe+=1))
+                save_array(@sprintf("../docs/l9ex1t1/PC_3D_$(lpad(it,4,"0"))",iframe),convert.(Float32,T_v))
+            end
         end
+
     end
     return
 end
