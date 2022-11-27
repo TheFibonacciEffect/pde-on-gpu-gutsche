@@ -170,5 +170,3 @@ end
     finalize_global_grid()
     return
 end
-
-porous_convection_3D(;nz=63,do_visu=true)
