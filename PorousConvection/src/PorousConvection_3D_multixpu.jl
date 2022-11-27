@@ -1,16 +1,3 @@
-const USE_GPU = true
-using ParallelStencil
-using ParallelStencil.FiniteDifferences3D
-@static if USE_GPU
-    @init_parallel_stencil(CUDA, Float64, 3)
-else
-    @init_parallel_stencil(Threads, Float64, 3)
-end
-using Plots,Plots.Measures,Printf
-default(size=(800,500),framestyle=:box,label=false,grid=false,margin=5mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=11)
-
-@views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
-
 max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
 
 function save_array(Aname,A)
@@ -70,7 +57,7 @@ end
     return
 end
 
-@views function porous_convection_3D(;nz=63,do_viz=false)
+@views function porous_convection_3D(;nz=63,do_visu=false)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
     k_ηf        = 1.0
@@ -80,11 +67,10 @@ end
     Ra          = 1000
     λ_ρCp       = 1/Ra*(αρg*k_ηf*ΔT*lz/ϕ) # Ra = αρg*k_ηf*ΔT*lz/λ_ρCp/ϕ
     # numerics
-    # nz          = 127
     nx,ny       = 2*(nz+1)-1,nz
     me, dims    = init_global_grid(nx, ny, nz)  # init global grid and more
-    hc     = (8,8,4)                       # for comm / comp overlap
-    nt          = 2000
+    hc          = (8,8,4)                       # for comm / comp overlap
+    nt          = 500
     re_D        = 4π
     cfl         = 1.0/sqrt(3.1)
     maxiter     = 10max(nx_g(),ny__g(),nz__g())
@@ -93,8 +79,6 @@ end
     ncheck      = ceil(2max(nx_g(),ny__g(),nz__g()))
     # preprocessing
     dx,dy,dz    = lx/nx_g(),ly/ny__g(),lz/nz__g()
-    xn,yn,zn    = LinRange(-lx/2,lx/2,nx+1),LinRange(-ly/2,ly/2,ny+1),LinRange(-lz,0,nz+1)
-    xc,yc,zc    = av1(xn),av1(yn),av1(zn)
     _dx,_dy,_dz = 1.0/dx,1.0/dy,1.0/dz
     _ϕ          = 1.0/ϕ
     θ_dτ_D      = max(lx,ly,lz)/re_D/cfl/min(dx,dy,dz)
@@ -113,7 +97,7 @@ end
     qTx         = @zeros(nx-1,ny-2,nz-2)
     qTy         = @zeros(nx-2,ny-1,nz-2)
     qTz         = @zeros(nx-2,ny-2,nz-1)
-    T           = [ΔT*exp(-x_g(ix,dx.T)[ix]^2 -y_g(iy,dy,T)[iy]^2 -(z_g(iz,dz,T)[iz]+lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
+    T           = [ΔT*exp(-(x_g(ix,dx.T)+dx/2-lx/2)^2 -(y_g(iy,dy,T)+dy/2-ly/2)^2 -(z_g(iz,dz,T)+dz/2-lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
     T[:,:,1].=ΔT/2; T[:,:,end].=-ΔT/2
     update_halo!(T)
     T           = Data.Array(T)
@@ -183,7 +167,8 @@ end
         end
 
     end
+    finalize_global_grid()
     return
 end
 
-porous_convection_3D(;nz=127,do_viz=true)
+porous_convection_3D(;nz=63,do_visu=true)
