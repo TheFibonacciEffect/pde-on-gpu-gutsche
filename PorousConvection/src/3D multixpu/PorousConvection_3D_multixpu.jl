@@ -161,7 +161,7 @@ end
                 @parallel compute_r!(r_Pf,r_T,qDx,qDy,qDz,qTx,qTy,qTz,dTdt,_dx,_dy,_dz)
                 err_D = max_g(abs.(r_Pf))
                 err_T = max_g(abs.(r_T))
-                me == 0 &&  @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx,err_D,err_T)
+                me == 0 &&  @printf("  iter/nx=%.1f, err_D=%1.3e, err_T=%1.3e\n",iter/nx_g(),err_D,err_T)
             end
             iter += 1
         end
