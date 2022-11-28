@@ -117,7 +117,17 @@ end
     # vis
     if do_visu
         ENV["GKSwstype"]="nul"
-        if (me==0) if isdir("../../docs/l9ex1t1")==false mkdir("../../docs/l9ex1t1") end; loadpath="../../docs/l9ex1t1"; anim=Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") end
+        if (me==0) 
+            dir = isdir("../../docs/l9ex1t2_out")
+            if dir==false mkdir("../../docs/l9ex1t2_out") end;
+            if dir==true 
+                t = rand(UInt)
+                mkdir("../../docs/l9ex1t2-$(t)_out/")
+                mv("../../docs/l9ex1t2_out", "../../docs/l9ex1t2-$(t)_out/",force=true) 
+                mkdir("../../docs/l9ex1t2_out")
+            end;
+            loadpath="../../docs/l9ex1t2_out"; anim=Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") 
+        end
         nx_v,ny_v,nz_v = (nx-2)*dims[1],(ny-2)*dims[2],(nz-2)*dims[3]
         if (nx_v*ny_v*nz_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
         T_v   = zeros(nx_v, ny_v, nz_v) # global array for visu
