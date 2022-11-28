@@ -1,4 +1,4 @@
-const USE_GPU = true
+const USE_GPU = false
 using ParallelStencil, ImplicitGlobalGrid
 using ParallelStencil.FiniteDifferences3D
 @static if USE_GPU
@@ -7,6 +7,7 @@ else
     @init_parallel_stencil(Threads, Float64, 3)
 end
 using Plots, Printf, MPI, MAT
+default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=14)
 
 max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
 
@@ -107,7 +108,7 @@ end
     qTx         = @zeros(nx-1,ny-2,nz-2)
     qTy         = @zeros(nx-2,ny-1,nz-2)
     qTz         = @zeros(nx-2,ny-2,nz-1)
-    T           = [ΔT*exp(-(x_g(ix,dx.T)+dx/2-lx/2)^2 -(y_g(iy,dy,T)+dy/2-ly/2)^2 -(z_g(iz,dz,T)+dz/2-lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
+    T           = [ΔT*exp(-(x_g(ix,dx,T)+dx/2-lx/2)^2 -(y_g(iy,dy,T)+dy/2-ly/2)^2 -(z_g(iz,dz,T)+dz/2-lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
     T[:,:,1].=ΔT/2; T[:,:,end].=-ΔT/2
     update_halo!(T)
     T           = Data.Array(T)
