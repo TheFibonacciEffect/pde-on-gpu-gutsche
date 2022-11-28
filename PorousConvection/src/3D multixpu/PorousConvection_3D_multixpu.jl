@@ -116,17 +116,18 @@ end
     T_old       = copy(T)
     # vis
     if do_visu
+        dir = "../../docs/l9ex1t2_out"
         ENV["GKSwstype"]="nul"
         if (me==0) 
-            dir = isdir("../../docs/l9ex1t2_out")
-            if dir==false mkdir("../../docs/l9ex1t2_out") end;
-            if dir==true 
+            is_dir = isdir()
+            if is_dir==false mkdir(dir) end;
+            if is_dir==true 
                 t = rand(UInt)
                 mkdir("../../docs/l9ex1t2-$(t)_out/")
-                mv("../../docs/l9ex1t2_out", "../../docs/l9ex1t2-$(t)_out/",force=true) 
-                mkdir("../../docs/l9ex1t2_out")
+                mv(dir, "../../docs/l9ex1t2-$(t)_out/",force=true) 
+                mkdir(dir)
             end;
-            loadpath="../../docs/l9ex1t2_out"; anim=Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") 
+            loadpath=dir; anim=Animation(loadpath,String[]); println("Animation directory: $(anim.dir)") 
         end
         nx_v,ny_v,nz_v = (nx-2)*dims[1],(ny-2)*dims[2],(nz-2)*dims[3]
         if (nx_v*ny_v*nz_v*sizeof(Data.Number) > 0.8*Sys.free_memory()) error("Not enough memory for visualization.") end
@@ -183,8 +184,8 @@ end
             if me==0
                 p1=heatmap(xi_g,zi_g,T_v[:,ceil(Int,ny_g()/2),:]';xlims=(xi_g[1],xi_g[end]),ylims=(zi_g[1],zi_g[end]),clims=(-100,100),aspect_ratio=1,c=:turbo)
                 # display(p1)
-                png(p1,"../../docs/l9ex1t1_out/PC_3D_$(lpad(it,4,"0")).png")
-                save_array("../../docs/l9ex1t1_out/PC_3D-$nx-$ny-$nz-$(lpad(it,4,"0"))-",convert.(Float32,T_v))
+                png(p1,dir*"/PC_3D_$(lpad(it,4,"0")).png")
+                save_array(dir*"/PC_3D-$nx-$ny-$nz-$(lpad(it,4,"0"))-",convert.(Float32,T_v))
             end
         end
 
