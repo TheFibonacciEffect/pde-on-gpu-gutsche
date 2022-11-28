@@ -84,12 +84,12 @@ end
     nt          = 500
     re_D        = 4π
     cfl         = 1.0/sqrt(3.1)
-    maxiter     = 10max(nx_g(),ny__g(),nz__g())
+    maxiter     = 10max(nx_g(),ny_g(),nz_g())
     ϵtol        = 1e-6
     nvis        = 50
-    ncheck      = ceil(2max(nx_g(),ny__g(),nz__g()))
+    ncheck      = ceil(2max(nx_g(),ny_g(),nz_g()))
     # preprocessing
-    dx,dy,dz    = lx/nx_g(),ly/ny__g(),lz/nz__g()
+    dx,dy,dz    = lx/nx_g(),ly/ny_g(),lz/nz_g()
     _dx,_dy,_dz = 1.0/dx,1.0/dy,1.0/dz
     _ϕ          = 1.0/ϕ
     θ_dτ_D      = max(lx,ly,lz)/re_D/cfl/min(dx,dy,dz)
