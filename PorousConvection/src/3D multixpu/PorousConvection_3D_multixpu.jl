@@ -108,6 +108,7 @@ end
     qTx         = @zeros(nx-1,ny-2,nz-2)
     qTy         = @zeros(nx-2,ny-1,nz-2)
     qTz         = @zeros(nx-2,ny-2,nz-1)
+    T           = @zeros(nx  ,ny  ,nz  )
     T           = [ΔT*exp(-(x_g(ix,dx,T)+dx/2-lx/2)^2 -(y_g(iy,dy,T)+dy/2-ly/2)^2 -(z_g(iz,dz,T)+dz/2-lz/2)^2) for ix=1:nx,iy=1:ny,iz=1:nz]
     T[:,:,1].=ΔT/2; T[:,:,end].=-ΔT/2
     update_halo!(T)
