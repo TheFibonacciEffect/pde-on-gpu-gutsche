@@ -2,7 +2,7 @@
 #SBATCH --job-name="3D_porous_convection"
 #SBATCH --output=3D_porous_convection.%j.o
 #SBATCH --error=3D_porous_convection.%j.e
-#SBATCH --time=01:30:00
+#SBATCH --time=00:10:00
 #SBATCH --nodes=8
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=normal
