@@ -9,13 +9,29 @@ end
 using Plots, Plots.Measures, Printf, MPI, MAT
 default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,labelfontsize=11,tickfontsize=11,titlefontsize=14)
 
+
+"""
+    max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
+
+Finds the global maximum of the array among all ranks of comm_world.
+"""
 max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
 
+"""
+    save_array(Aname,A)
+
+Saves array A as binary file with name Aname.
+"""
 function save_array(Aname,A)
     fname = string(Aname,".bin")
     out = open(fname,"w"); write(out,A); close(out)
 end
 
+"""
+    compute_Dflux!(qDx,qDy,qDz,Pf,T,k_ηf,_dx,_dy,_dz,αρg,_1_θ_dτ_D)
+
+Calculated current Darcy flux from effective pressure and subtracts it from previous result.
+"""
 @parallel function compute_Dflux!(qDx,qDy,qDz,Pf,T,k_ηf,_dx,_dy,_dz,αρg,_1_θ_dτ_D)
     @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf*(@d_xa(Pf)*_dx                ))*_1_θ_dτ_D
     @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf*(@d_ya(Pf)*_dy                ))*_1_θ_dτ_D
@@ -23,11 +39,22 @@ end
     return nothing
 end
 
+
+"""
+    update_Pf!(Pf,qDx,qDy,qDz,_dx,_dy,_dz,_β_dτ_D)
+
+Effective pressure update calculated from the divergence of the Darcy flux.
+"""
 @parallel function update_Pf!(Pf,qDx,qDy,qDz,_dx,_dy,_dz,_β_dτ_D)
     @all(Pf) = @all(Pf) - (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy + @d_za(qDz)*_dz)*_β_dτ_D
     return nothing
 end
 
+"""
+    compute_Tflux!(qTx,qTy,qTz,dTdt,T,T_old,qDx,qDy,qDz,_dt,λ_ρCp_dx,λ_ρCp_dy,λ_ρCp_dz,_1_θ_dτ_T,_dx,_dy,_dz,_ϕ)
+
+Calculates temperature flux based on the gradient of temperature and material propoerties. Then calculates the advection of the temperature field using an upwind scheme.
+"""
 @parallel_indices (ix,iy,iz) function compute_Tflux!(qTx,qTy,qTz,dTdt,T,T_old,qDx,qDy,qDz,_dt,λ_ρCp_dx,λ_ρCp_dy,λ_ρCp_dz,_1_θ_dτ_T,_dx,_dy,_dz,_ϕ)
     if (ix<=size(qTx,1) && iy<=size(qTx,2) && iz<=size(qTx,3))  qTx[ix,iy,iz] = qTx[ix,iy,iz] - (qTx[ix,iy,iz] + λ_ρCp_dx*(T[ix+1,iy+1,iz+1]-T[ix,iy+1,iz+1]))*_1_θ_dτ_T  end
     if (ix<=size(qTy,1) && iy<=size(qTy,2) && iz<=size(qTy,3))  qTy[ix,iy,iz] = qTy[ix,iy,iz] - (qTy[ix,iy,iz] + λ_ρCp_dy*(T[ix+1,iy+1,iz+1]-T[ix+1,iy,iz+1]))*_1_θ_dτ_T  end
@@ -45,6 +72,11 @@ end
     return nothing
 end
 
+"""
+    update_T!(T,qTx,qTy,qTz,dTdt,_dx,_dy,_dz,_1_dt_β_dτ_T)
+
+
+"""
 @parallel function update_T!(T,qTx,qTy,qTz,dTdt,_dx,_dy,_dz,_1_dt_β_dτ_T)
     @inn(T) = @inn(T) - (@all(dTdt) + @d_xa(qTx)*_dx + @d_ya(qTy)*_dy + @d_za(qTz)*_dz)*_1_dt_β_dτ_T
     return nothing

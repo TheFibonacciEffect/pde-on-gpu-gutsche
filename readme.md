@@ -64,5 +64,11 @@ import MPI```
 
 ### Exercise 2 - Automatic Documentation
 - [ ] write some documentation
-- [ ] using [doc-strings]([https://](https://docs.julialang.org/en/v1/manual/documentation/))
-- [ ] using Literate.jl
+  - [ ] using [doc-strings]([https://](https://docs.julialang.org/en/v1/manual/documentation/))
+    - [ ] Add doc-string to the functions of following scripts:
+      - PorousConvection_3D_xpu.jl
+      - PorousConvection_3D_multixpu.jl
+  - [ ] using Literate.jl
+    - [ ] Add to the PorousConvection folder a Literate.jl script called bin_io_script.jl that contains and documents following save_array and load_array functions you may have used in your 3D script
+    - [ ] Add to the bin_io_script.jl a main() function
+    - [ ] Make the Literate-based workflow to automatically build on GitHub using GitHub Actions. For this, you need to add to the .github/workflow folder the Literate.yml script from the lecuture
