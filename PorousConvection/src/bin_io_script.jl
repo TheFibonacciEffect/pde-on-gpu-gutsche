@@ -25,10 +25,10 @@ function main()
     B = zeros(Float64,n,n)
 
     # save array A
-    save_array("/test/LitTest",A)
+    save_array("../test/LitTest",A)
 
     # load array A into B
-    load_array("/test/LitTest.bin",B)
+    load_array("../test/LitTest.bin",B)
 
     return B
 end
