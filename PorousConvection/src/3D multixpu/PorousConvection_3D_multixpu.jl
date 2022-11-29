@@ -11,7 +11,7 @@ default(size=(600,500),framestyle=:box,label=false,grid=false,margin=10mm,lw=6,l
 
 
 """
-    max_g(A) = (max_l = maximum(A); MPI.Allreduce(max_l, MPI.MAX, MPI.COMM_WORLD))
+    max_g(A)
 
 Finds the global maximum of the array among all ranks of comm_world.
 """

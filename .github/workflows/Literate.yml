@@ -44,6 +44,6 @@ jobs:
       - name: commit
         run: |
           # Stage the file, commit and push
-          git add PorousConvection/scripts/md/*
+          git add PorousConvection/src/md/*
           git commit -m "Commit markdown files from Literate"
           git push origin main
