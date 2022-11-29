@@ -64,8 +64,8 @@ import MPI```
 
 ### Exercise 2 - Automatic Documentation
 - [ ] write some documentation
-  - [ ] using [doc-strings]([https://](https://docs.julialang.org/en/v1/manual/documentation/))
-    - [ ] Add doc-string to the functions of following scripts:
+  - [x] using [doc-strings]([https://](https://docs.julialang.org/en/v1/manual/documentation/))
+    - [x] Add doc-string to the functions of following scripts:
       - PorousConvection_3D_xpu.jl
       - PorousConvection_3D_multixpu.jl
   - [ ] using Literate.jl

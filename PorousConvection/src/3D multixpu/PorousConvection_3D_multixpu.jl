@@ -75,31 +75,51 @@ end
 """
     update_T!(T,qTx,qTy,qTz,dTdt,_dx,_dy,_dz,_1_dt_β_dτ_T)
 
-
+Temperature update calculated from the divergence of the temperature flux and the advected temperature field
 """
 @parallel function update_T!(T,qTx,qTy,qTz,dTdt,_dx,_dy,_dz,_1_dt_β_dτ_T)
     @inn(T) = @inn(T) - (@all(dTdt) + @d_xa(qTx)*_dx + @d_ya(qTy)*_dy + @d_za(qTz)*_dz)*_1_dt_β_dτ_T
     return nothing
 end
 
+"""
+    compute_r!(r_Pf,r_T,qDx,qDy,qDz,qTx,qTy,qTz,dTdt,_dx,_dy,_dz)
+
+Assembles the residuals of the temperature and pressure equation to check convergence behaviour
+"""
 @parallel function compute_r!(r_Pf,r_T,qDx,qDy,qDz,qTx,qTy,qTz,dTdt,_dx,_dy,_dz)
     @all(r_Pf) = @d_xa(qDx)*_dx + @d_ya(qDy)*_dy + @d_za(qDz)*_dz
     @all(r_T)  = @all(dTdt) + @d_xa(qTx)*_dx + @d_ya(qTy)*_dy + @d_za(qTz)*_dz
     return nothing
 end
 
+"""
+    function bc_x!(A)
+
+Von Neumann boundary condition in x direction
+"""
 @parallel_indices (iy,iz) function bc_x!(A)
     A[1  ,iy,iz] = A[2    ,iy,iz]
     A[end,iy,iz] = A[end-1,iy,iz]
     return
 end
 
+"""
+    function bc_y!(A)
+        
+Von Neumann boundary condition in y direction
+"""
 @parallel_indices (ix,iz) function bc_y!(A)
     A[ix,1  ,iz] = A[ix,2    ,iz]
     A[ix,end,iz] = A[ix,end-1,iz]
     return
 end
 
+"""
+    porous_convection_3D(;nz=63,do_visu=false)
+        
+Porous convection solver using the pseudo-transient method and time evolution
+"""
 @views function porous_convection_3D(;nz=63,do_visu=false)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
