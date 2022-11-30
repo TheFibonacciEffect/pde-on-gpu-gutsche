@@ -10,7 +10,7 @@ macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
     return
 end
 
-@views function diffusion_2D(; do_visu=false,do_save=false,ttot = 1e-4)
+@views function diffusion_2D(; do_visu=false,do_save=false,ttot = 1e-4,timestep_override=0)
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
@@ -21,7 +21,7 @@ end
     me, dims = init_global_grid(nx, ny, 1)  # Initialization more...
     dx, dy  = Lx/nx_g(), Ly/ny_g()
     dt      = min(dx, dy)^2/D/4.1
-    nt      = cld(ttot, dt)
+    nt      = timestep_override==0 ? cld(ttot, dt) : timestep_override
     D_dx    = D/dx
     D_dy    = D/dy
     _dx, _dy= 1.0/dx, 1.0/dy
