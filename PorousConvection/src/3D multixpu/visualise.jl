@@ -1,14 +1,14 @@
 using GLMakie
 
 function load_array(Aname,A)
-    fname = string(Aname,".bin")
+    fname = string(Aname)
     fid=open(fname,"r"); read!(fid,A); close(fid)
 end
 
 function visualise(aname)
     lx,ly,lz = 40.0,20.0,20.0
     _, nx,ny,nz,nt,_ = split(aname,"-")
-    nx = parse(Int,nx); ny = parse(Int,ny); nz = parse(Int,nz), nt= parse(Int,nt)
+    nx = parse(Int,nx); ny = parse(Int,ny); nz = parse(Int,nz); nt= parse(Int,nt)
     T  = zeros(Float32,nx,ny,nz)
     load_array(aname,T)
     @assert maximum(T) != 0.0
@@ -20,11 +20,17 @@ function visualise(aname)
 end
 
 function main()
-    for file in readdir()
+    indir = "../../docs/l9ex1t2_out/"
+    outdir = "../../docs/visualisation_3D"
+    for (it,file) in enumerate(readdir(indir))
         if occursin(".bin",file)
-            fig = visualise(file)
-            if !isdir("../../docs/visualisation_3D") mkdir("../../docs/visualisation_3D") end
-            save("../../docs/visualisation_3D/$(lpad(it,4,"0")).png",fig)
+            fig = visualise(indir*file)
+            if !isdir(outdir) mkdir(outdir) end
+            print("Saving ",file,".png")
+            save(outdir*"/$(lpad(it,4,"0")).png",fig)
         end
     end
 end
+
+main()
+println("Done")
