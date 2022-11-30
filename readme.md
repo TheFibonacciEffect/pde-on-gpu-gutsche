@@ -58,17 +58,17 @@ import MPI```
     -[ ] Use sbtach command to launch a non-interactive job which may take about 5h30-6h to execute.
     - [ ] Produce a figure or animation showing the final stage of temperature distribution in 3D and add it to a new section titled ## Porous convection 3D MPI in the PorousConvection project subfolder's README.md. You can use the Makie visualisation helper script from Lecture 7 for this purpose (making sure to adapt the resolution and other input params if needed).
 
-- [ ] Keep it xPU compatible using ParallelStencil.jl
+- [x] Keep it xPU compatible using ParallelStencil.jl
 
-- [ ] Deploy it on multiple xPUs using ImplicitGlobalGrid.jl
+- [x] Deploy it on multiple xPUs using ImplicitGlobalGrid.jl
 
 ### Exercise 2 - Automatic Documentation
-- [ ] write some documentation
+- [x] write some documentation
   - [x] using [doc-strings]([https://](https://docs.julialang.org/en/v1/manual/documentation/))
     - [x] Add doc-string to the functions of following scripts:
       - PorousConvection_3D_xpu.jl
       - PorousConvection_3D_multixpu.jl
-  - [ ] using Literate.jl
+  - [x] using Literate.jl
     - [x] Add to the PorousConvection folder a Literate.jl script called bin_io_script.jl that contains and documents following save_array and load_array functions you may have used in your 3D script
     - [x] Add to the bin_io_script.jl a main() function
-    - [ ] Make the Literate-based workflow to automatically build on GitHub using GitHub Actions. For this, you need to add to the .github/workflow folder the Literate.yml script from the lecuture
+    - [x] Make the Literate-based workflow to automatically build on GitHub using GitHub Actions. For this, you need to add to the .github/workflow folder the Literate.yml script from the lecuture
