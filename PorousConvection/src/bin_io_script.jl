@@ -1,3 +1,5 @@
+using Plots #hide
+
 md"""
 Saves array A as binary file with name Aname.
 """
@@ -34,5 +36,10 @@ function main()
     return B
 end
 
-# B = main()
-# heatmap(B)
+B = main()
+heatmap(B)
+
+savefig("../docs/LitTest.png") #src
+
+# This generates a heatmap
+# ![heatmap](../docs/LitTest.png)
