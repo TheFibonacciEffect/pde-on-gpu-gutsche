@@ -46,6 +46,12 @@ The
 
 <!-- [![Build Status](https://github.com/omlins/ParallelStencil.jl/workflows/CI/badge.svg)](https://github.com/omlins/ParallelStencil.jl/actions) -->
 
+### Weak scaling
+![weak scaling](../lecture8/docs/weak_scaling.png)
+
+### Strong Scaling
+
+
 ### Porous convection 2D
 This is the temperature distribution and flux when running the porous convection 2D code on a 511 1023 with 4000 timesteps
 ![Fig1](docs/PorousConvection2D.gif)
