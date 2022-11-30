@@ -76,9 +76,11 @@ import MPI```
 ## Project
 Make sure to have following items in your private GitHub repository:
 - [ ] a PorousConvection folder containing the structure proposed in Lecture 7
-- [ ] the 2D and 3D scripts from Lecture 7
-- [ ] the CI set-up to test the 2D and 3D porous convection scripts
+- [x] the 2D and 3D scripts from Lecture 7
+- [x] the CI set-up to test the 2D and 3D porous convection scripts
 - [ ] a lecture_8 folder (different from the PorousConvection folder) containing the codes, README.md and material listed in Exercises - Lecture 8
+  - [ ] Why does weak scaling not work?
+    - [ ] Maybe the simulation time is too short
 - [ ] the 3D multi-xPU thermal porous convection script and output as per directions from Exercises - Lecture 9.
 
 In addition enhance the README.md within the PorousConvection folder to include:

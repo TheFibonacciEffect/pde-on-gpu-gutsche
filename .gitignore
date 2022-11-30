@@ -7,3 +7,4 @@ Manifest.toml
 *.bin
 *.o
 *.e
+*_old
