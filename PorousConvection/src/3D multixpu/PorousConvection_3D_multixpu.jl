@@ -237,7 +237,7 @@ Porous convection solver using the pseudo-transient method and time evolution
                 p1=heatmap(xi_g,zi_g,T_v[:,ceil(Int,ny_g()/2),:]';xlims=(xi_g[1],xi_g[end]),ylims=(zi_g[1],zi_g[end]),clims=(-100,100),aspect_ratio=1,c=:turbo)
                 # display(p1)
                 png(p1,dir*"/PC_3D_$(lpad(it,4,"0")).png")
-                save_array(dir*"/PC_3D-$(nx_g())-$(ny_g())-$(nz_g())-$(lpad(it,4,"0"))-",convert.(Float32,T_v))
+                save_array(dir*"/PC_3D-$(nx_v)-$(ny_v)-$(nz_v)-$(lpad(it,4,"0"))-",convert.(Float32,T_v))
             end
         end
 
