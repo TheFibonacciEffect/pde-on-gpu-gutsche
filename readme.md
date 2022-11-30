@@ -82,8 +82,8 @@ Make sure to have following items in your private GitHub repository:
 - [ ] the 3D multi-xPU thermal porous convection script and output as per directions from Exercises - Lecture 9.
 
 In addition enhance the README.md within the PorousConvection folder to include:
-- [ ] a short motivation/introduction
-- [ ] concise information about the equations you are solving
+- [x] a short motivation/introduction
+- [x] concise information about the equations you are solving
 - [ ] concise information about the numerical method and implementation
 - [ ] the results, incl. figures with labels, captions, etc...
 - [ ] a short discussion/conclusion section about the performed work, results, and outlook
