@@ -39,7 +39,7 @@ end
 B = main()
 heatmap(B)
 
-savefig("../docs/LitTest.png") #src
+savefig("../docs/md/LitTest.png") #src
 
 # This generates a heatmap
-# ![heatmap](../docs/LitTest.png)
+# ![heatmap](LitTest.png)
