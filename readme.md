@@ -56,7 +56,7 @@ import MPI```
     ```
 
     -[X] Use sbtach command to launch a non-interactive job which may take about 5h30-6h to execute.
-    - [ ] Produce a figure or animation showing the final stage of temperature distribution in 3D and add it to a new section titled ## Porous convection 3D MPI in the PorousConvection project subfolder's README.md. You can use the Makie visualisation helper script from Lecture 7 for this purpose (making sure to adapt the resolution and other input params if needed).
+    - [X] Produce a figure or animation showing the final stage of temperature distribution in 3D and add it to a new section titled ## Porous convection 3D MPI in the PorousConvection project subfolder's README.md. You can use the Makie visualisation helper script from Lecture 7 for this purpose (making sure to adapt the resolution and other input params if needed).
 
 - [X] Keep it xPU compatible using ParallelStencil.jl
 
@@ -79,8 +79,9 @@ Make sure to have following items in your private GitHub repository:
 - [X] the 2D and 3D scripts from Lecture 7
 - [X] the CI set-up to test the 2D and 3D porous convection scripts
 - [ ] a lecture_8 folder (different from the PorousConvection folder) containing the codes, README.md and material listed in Exercises - Lecture 8
-  - [ ] Why does weak scaling not work?
-    - [ ] Maybe the simulation time is too short
+  - [X] Why does weak scaling not work?
+    - [X] Maybe the simulation time is too short
+  - [ ] strong scaling from `lecture8/src/ex2/t4/l8_diffusion_2D_pref_multixpu._SC.jl`
 - [ ] the 3D multi-xPU thermal porous convection script and output as per directions from Exercises - Lecture 9.
 
 In addition enhance the README.md within the PorousConvection folder to include:
