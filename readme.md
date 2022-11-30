@@ -72,3 +72,18 @@ import MPI```
     - [x] Add to the PorousConvection folder a Literate.jl script called bin_io_script.jl that contains and documents following save_array and load_array functions you may have used in your 3D script
     - [x] Add to the bin_io_script.jl a main() function
     - [x] Make the Literate-based workflow to automatically build on GitHub using GitHub Actions. For this, you need to add to the .github/workflow folder the Literate.yml script from the lecuture
+
+## Project
+Make sure to have following items in your private GitHub repository:
+- [ ] a PorousConvection folder containing the structure proposed in Lecture 7
+- [ ] the 2D and 3D scripts from Lecture 7
+- [ ] the CI set-up to test the 2D and 3D porous convection scripts
+- [ ] a lecture_8 folder (different from the PorousConvection folder) containing the codes, README.md and material listed in Exercises - Lecture 8
+- [ ] the 3D multi-xPU thermal porous convection script and output as per directions from Exercises - Lecture 9.
+
+In addition enhance the README.md within the PorousConvection folder to include:
+- [ ] a short motivation/introduction
+- [ ] concise information about the equations you are solving
+- [ ] concise information about the numerical method and implementation
+- [ ] the results, incl. figures with labels, captions, etc...
+- [ ] a short discussion/conclusion section about the performed work, results, and outlook
