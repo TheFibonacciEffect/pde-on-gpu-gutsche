@@ -171,7 +171,7 @@ Porous convection solver using the pseudo-transient method and time evolution
         dir = "../../docs/l9ex1t2_out"
         ENV["GKSwstype"]="nul"
         if (me==0) 
-            is_dir = isdir()
+            is_dir = isdir(dir)
             if is_dir==false mkdir(dir) end;
             if is_dir==true 
                 t = rand(UInt)
