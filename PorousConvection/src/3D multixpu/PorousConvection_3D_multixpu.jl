@@ -133,12 +133,12 @@ Porous convection solver using the pseudo-transient method and time evolution
     nx,ny       = 2*(nz+1)-1,nz
     me, dims    = init_global_grid(nx, ny, nz)  # init global grid and more
     hc          = (8,8,4)                       # for comm / comp overlap
-    nt          = 500
+    nt          = 2000
     re_D        = 4π
     cfl         = 1.0/sqrt(3.1)
     maxiter     = 10max(nx_g(),ny_g(),nz_g())
     ϵtol        = 1e-6
-    nvis        = 50
+    nvis        = 100
     ncheck      = ceil(2max(nx_g(),ny_g(),nz_g()))
     # preprocessing
     dx,dy,dz    = lx/nx_g(),ly/ny_g(),lz/nz_g()
@@ -246,4 +246,4 @@ Porous convection solver using the pseudo-transient method and time evolution
     return
 end
 
-porous_convection_3D(;nz=63,do_visu=true)
+porous_convection_3D(;nz=127,do_visu=true)

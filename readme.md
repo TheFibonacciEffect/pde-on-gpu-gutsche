@@ -45,8 +45,8 @@ import MPI```
 
     ```
   - [x] Then, launch the script on Piz Daint on 8 GPU nodes upon adapting the the runme_mpi_daint.sh or sbatch sbatch_mpi_daint.sh scripts (see here) using CUDA-aware MPI 🚀
-    - [ ] The final 2D slice (at ny_g()/2) produced should look similar as the figure depicted in Lecture 9.
-  - [ ] Now that you made sure the code runs as expected, launch PorousConvection_3D_multixpu.jl for 2000 steps on 8 GPUs at higher resolution (global grid of 508x252x252) setting:
+    - [x] The final 2D slice (at ny_g()/2) produced should look similar as the figure depicted in Lecture 9.
+  - [x] Now that you made sure the code runs as expected, launch PorousConvection_3D_multixpu.jl for 2000 steps on 8 GPUs at higher resolution (global grid of 508x252x252) setting:
 
     ```
     nz          = 127
@@ -55,7 +55,7 @@ import MPI```
     nvis        = 100    
     ```
 
-    -[ ] Use sbtach command to launch a non-interactive job which may take about 5h30-6h to execute.
+    -[x] Use sbtach command to launch a non-interactive job which may take about 5h30-6h to execute.
     - [ ] Produce a figure or animation showing the final stage of temperature distribution in 3D and add it to a new section titled ## Porous convection 3D MPI in the PorousConvection project subfolder's README.md. You can use the Makie visualisation helper script from Lecture 7 for this purpose (making sure to adapt the resolution and other input params if needed).
 
 - [x] Keep it xPU compatible using ParallelStencil.jl
