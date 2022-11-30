@@ -1,3 +1,4 @@
+
 Saves array A as binary file with name Aname.
 
 ````julia
@@ -36,19 +37,20 @@ function main()
     B = zeros(Float64,n,n)
 
     # save array A
-    save_array("../test/LitTest",A)
+    save_array("LitTest",A)
 
     # load array A into B
-    load_array("../test/LitTest",B)
+    load_array("LitTest",B)
 
     return B
 end
+
+B = main();
+heatmap(B);
+
+savefig("LitTest.png");
 ````
 
-````
-main (generic function with 1 method)
-````
-
-B = main()
-heatmap(B)
+This generates a heatmap
+![heatmap](LitTest.png)
 
