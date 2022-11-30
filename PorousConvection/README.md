@@ -22,6 +22,8 @@ where $q_{D}$ is the Darcy flux, $k$ is the permeability, $\eta$ id the fluid vi
 
 [![Build Status](https://github.com/TheFibonacciEffect/pde-on-gpu-gutsche/actions/workflows/CI.yml/badge.svg)](https://github.com/TheFibonacciEffect/pde-on-gpu-gutsche/actions/workflows/CI.yml)
 
+[![Literate Status](https://github.com/TheFibonacciEffect/pde-on-gpu-gutsche/actions/workflows/Literate.yml/badge.svg)](https://github.com/TheFibonacciEffect/pde-on-gpu-gutsche/actions/workflows/Literate.yml)
+
 <!-- [![Build Status](https://github.com/omlins/ParallelStencil.jl/workflows/CI/badge.svg)](https://github.com/omlins/ParallelStencil.jl/actions) -->
 
 ### Porous convection 2D
