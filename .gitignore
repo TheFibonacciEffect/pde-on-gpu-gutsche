@@ -8,3 +8,4 @@ Manifest.toml
 *.o
 *.e
 *_old
+core.*
