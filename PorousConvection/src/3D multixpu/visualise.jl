@@ -1,3 +1,4 @@
+# julia --project=../.. visualise.jl 
 using GLMakie
 
 function load_array(Aname,A)
@@ -21,7 +22,7 @@ end
 
 function main()
     indir = "../../docs/l9ex1t2_out/"
-    outdir = "../../docs/visualisation_3D"
+    outdir = "../../docs/visualisation_3D_out"
     if !isdir(outdir) mkdir(outdir) end
     for (it,file) in enumerate(readdir(indir))
         if occursin(".bin",file)
