@@ -52,6 +52,6 @@ This is the temperature distribution and flux when running the porous convection
 
 
 ### Porous convection 3D
-this is the same phenomenon in 3D. Here is the temperature distribution after 2000 timesteps with `nx,ny,nz = 255,127,127`.
-
+this is the same phenomenon in 3D. Here is the temperature distribution after 2000 timesteps with `nx,ny,nz = 506-250-250`.
+![Fig2](docs/porous_conv_multixpu.gif)
 ## Discussion/Conclusion
