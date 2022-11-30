@@ -44,7 +44,7 @@ import MPI```
     nvis        = 50
 
     ```
-  - [ ] Then, launch the script on Piz Daint on 8 GPU nodes upon adapting the the runme_mpi_daint.sh or sbatch sbatch_mpi_daint.sh scripts (see here) using CUDA-aware MPI 🚀
+  - [x] Then, launch the script on Piz Daint on 8 GPU nodes upon adapting the the runme_mpi_daint.sh or sbatch sbatch_mpi_daint.sh scripts (see here) using CUDA-aware MPI 🚀
     - [ ] The final 2D slice (at ny_g()/2) produced should look similar as the figure depicted in Lecture 9.
   - [ ] Now that you made sure the code runs as expected, launch PorousConvection_3D_multixpu.jl for 2000 steps on 8 GPUs at higher resolution (global grid of 508x252x252) setting:
 

@@ -7,7 +7,14 @@ The aim of this procet is to to extend a previously implemented pseudo-transient
 
 ## Physics
 The underlying equations are:
+$$ \begin{alignat}{1}
+& \boldsymbol{q}_D =-\frac{k}{\eta}\left(\nabla p-\rho_0 \alpha \boldsymbol{g} T\right) \\
+& \nabla \cdot \boldsymbol{q}_{\boldsymbol{D}}=0 \\
+& \boldsymbol{q}_{\boldsymbol{T}}=-\frac{\lambda}{\rho_0 c_p} \nabla T \\
+& \frac{\partial T}{\partial t}+\frac{1}{\varphi} \boldsymbol{q}_{\boldsymbol{D}} \cdot \nabla T+\nabla \cdot \boldsymbol{q}_{\boldsymbol{T}}=0
+\end{alignat}$$
 
+where $q_{D}$ is the Darcy flux, $k$ is the permeability, $\eta$ id the fluid viscosity, $p$ is the pressure, $\rho_{0}$ is the density, $\alpha$ is the termal expansion coeficient, $T$ is the temperature, $q_{T}$ is the conductive heat flux, $c_{p}$ is the specific heat capacity, $t$ it the physical time and $\varphi$ is the porosity.
 
 ## Numerical methods
 
