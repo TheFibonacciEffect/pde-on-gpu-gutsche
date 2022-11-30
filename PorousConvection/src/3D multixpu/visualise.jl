@@ -22,11 +22,11 @@ end
 function main()
     indir = "../../docs/l9ex1t2_out/"
     outdir = "../../docs/visualisation_3D"
+    if !isdir(outdir) mkdir(outdir) end
     for (it,file) in enumerate(readdir(indir))
         if occursin(".bin",file)
+            println("working on ",file, "...")
             fig = visualise(indir*file)
-            if !isdir(outdir) mkdir(outdir) end
-            print("Saving ",file,".png")
             save(outdir*"/$(lpad(it,4,"0")).png",fig)
         end
     end
