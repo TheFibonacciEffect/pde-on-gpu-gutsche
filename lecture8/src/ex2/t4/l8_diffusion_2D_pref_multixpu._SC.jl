@@ -170,7 +170,8 @@ function main()
         ylabel="T_eff [GB/s]",
         marker = 2,
         markershape=:circle,
-        markersize=10
+        markersize=10,
+        xaxis=:log
     )
     savefig(plt,"../../../docs/StrongScaling.png")
 end

@@ -50,7 +50,7 @@ The
 ![weak scaling](../lecture8/docs/weak_scaling.png)
 
 ### Strong Scaling
-
+![strong scaling](../lecture8/docs/StrongScaling.png) 
 
 ### Porous convection 2D
 This is the temperature distribution and flux when running the porous convection 2D code on a 511 1023 with 4000 timesteps
