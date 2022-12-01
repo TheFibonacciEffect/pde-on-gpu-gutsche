@@ -164,7 +164,7 @@ function main()
         push!(Teff,Pf_diffusion_2D(nx[i],ny[i]; do_check=false))
     end
     #plot the results
-    plt = plot(nx,T_eff,
+    plt = plot(nx,Teff,
         title = "Effective memory throughput Tesla P100 np = 1",
         xlabel="nx",
         ylabel="T_eff [GB/s]",
