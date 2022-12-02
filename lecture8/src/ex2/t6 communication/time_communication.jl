@@ -36,7 +36,7 @@ me == 0 && open("diffusion_2D_perf_multixpu.txt", "a") do f
 end
 
 # ([2,16,16],[2,4,16])
-for (i,j) in ([2,2],[16,4],[16,16])
+for (i,j) in ([2,2],[8,2],[16,4],[16,16])
     t_toc, _ = diffusion_2D(Lx, Ly,D,nx, ny,nout,me, dims; do_visu=false,do_save=true)
     if me == 0
         push!(times, t_toc)
@@ -50,11 +50,13 @@ for (i,j) in ([2,2],[16,4],[16,16])
 end
 finalize_global_grid()
 
-me==0&&println(is,times)
-# Plot
-p = plot(js, times,markershape=:circle, label="time hidecomm", xlabel="j", ylabel="time (s)", title="time hidecomunication",xscale=:log)
+if me==0
+    println(is,times)
+    # Plot
+    p = plot(is, times./times[0],markershape=:circle, label="time hidecomm", xlabel="j", ylabel="time (s)/t_no_hidecom", title="time hidecomunication",xticks=is)
 
-println("plot:")
-println(p)
-# Save
-savefig(p,"time_communtication.png")
+    println("plot:")
+    println(p)
+    # Save
+    savefig(p,"time_communtication.png")
+end
