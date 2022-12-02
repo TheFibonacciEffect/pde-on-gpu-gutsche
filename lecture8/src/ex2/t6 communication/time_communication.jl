@@ -35,4 +35,7 @@ for (i,j) in ([2,16,16],[2,4,16])
 end
 
 # Plot
-plot(is, times, label="diffusion_2D_perf_multixpu", xlabel="i,j", ylabel="time (s)", title="diffusion_2D_perf_multixpu",xticks=[no-hidecomm, (2,2), (8,2), (16,4), (16,16)])
+plot(is, times, label="time hidecomm", xlabel="i", ylabel="time (s)", title="time hidecomunication",xticks=[no-hidecomm, (2,2), (8,2), (16,4), (16,16)])
+
+# Save
+savefig("time_communtication.png")
