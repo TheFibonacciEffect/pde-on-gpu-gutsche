@@ -2,7 +2,7 @@
 #SBATCH --job-name="time_com"
 #SBATCH --output=time_com.%j.o
 #SBATCH --error=time_com.%j.e
-#SBATCH --time=01:00:00
+#SBATCH --time=00:15:00
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=1
 #SBATCH --partition=normal
