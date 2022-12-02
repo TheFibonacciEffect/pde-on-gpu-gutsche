@@ -18,7 +18,7 @@ If you have any questions write a mail to `cgutsche@ethz.ch`
 
 ## TODO
 - [X] You'll find a version of the PorousConvection_3D_xpu.jl code in the solutions folder on Polybox after exercises deadline if needed to get you started.
-- [ ] Create a multi-xPU version of your thermal porous convection 3D xPU code you finalised in lecture 7
+- [X] Create a multi-xPU version of your thermal porous convection 3D xPU code you finalised in lecture 7
   - [X] Copy your working PorousConvection_3D_xpu.jl code developed for the exercises in Lecture 7 and rename it PorousConvection_3D_multixpu.jl.
   - [X] Add at the beginning of the code ```using ImplicitGlobalGrid
 import MPI```
@@ -89,6 +89,6 @@ Make sure to have following items in your private GitHub repository:
 In addition enhance the README.md within the PorousConvection folder to include:
 - [X] a short motivation/introduction
 - [X] concise information about the equations you are solving
-- [ ] concise information about the numerical method and implementation
-- [ ] the results, incl. figures with labels, captions, etc...
+- [X] concise information about the numerical method and implementation
+- [X] the results, incl. figures with labels, captions, etc...
 - [ ] a short discussion/conclusion section about the performed work, results, and outlook
