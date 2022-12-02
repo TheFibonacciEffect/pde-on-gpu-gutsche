@@ -76,8 +76,7 @@ This is the temperature distribution and flux when running the porous convection
     i = 8, j = 2, t_toc = 0.14876699447631836
     i = 16, j = 4, t_toc = 0.1478869915008545
     i = 16, j = 16, t_toc = 0.1474440097808838
-![time com](../lecture8/src/ex2/t6%20communication/time_communtication.png)
-
+![time com](../lecture8/src/ex2/t6_communication/time_communtication.png)
 ### Porous convection 3D
 this is the same phenomenon in 3D. Here is the temperature distribution during the 2000 timesteps with `nx,ny,nz = 506-250-250`.
 ![Fig2](docs/porous_conv_multixpu.gif)
