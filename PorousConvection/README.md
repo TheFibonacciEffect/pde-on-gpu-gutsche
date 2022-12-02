@@ -64,7 +64,7 @@ The was scaled across multiple GPUs with the same total number of timesteps to e
 
 ### Strong Scaling
 ![strong scaling](../lecture8/docs/StrongScaling.png)
-The problem size was scaled to find the optimal problem size for a single GPU. As we can see the effective memory throughput is largest for a problem size of ???.
+The problem size was scaled to find the optimal problem size for a single GPU. As we can see the effective memory throughput is largest for a problem size of 512 x 512.
 
 ### Porous convection 2D
 This is the temperature distribution and flux when running the porous convection 2D code on a 511 1023 with 4000 timesteps
