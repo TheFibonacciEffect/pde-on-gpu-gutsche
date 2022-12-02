@@ -53,7 +53,7 @@ finalize_global_grid()
 if me==0
     println(is,times)
     # Plot
-    p = plot(is, times./times[0],markershape=:circle, label="time hidecomm", xlabel="j", ylabel="time (s)/t_no_hidecom", title="time hidecomunication",xticks=is)
+    p = plot(is, times./times[1],markershape=:circle, label="time hidecomm", xlabel="j", ylabel="time (s)/t_no_hidecom", title="time hidecomunication",xticks=is)
 
     println("plot:")
     println(p)
