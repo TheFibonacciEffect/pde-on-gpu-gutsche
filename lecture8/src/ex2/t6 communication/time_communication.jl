@@ -9,20 +9,32 @@ else
 end
 using Plots, Printf, MPI, MAT
 
-include("../t3/l8_diffusion_2D_perf_multixpu.jl")
+
+# Physics
+Lx, Ly  = 10.0, 10.0
+D       = 1.0
+# Numerics
+nx, ny  = 64, 64 # number of grid points
+nout    = 20
+# Derived numerics
+me, dims = init_global_grid(nx, ny, 1)  # Initialization more...
+
+ENV["GKSwstype"]="nul"
+include("l8_diffusion_2D_perf_multixpu.jl")
 
 times = []
 is = []
 js = []
 
 
-t_toc, me = diffusion_2D(; do_visu=false,do_save=true,hidecom=false)
+t_toc, me = diffusion_2D(Lx, Ly,D,nx, ny,nout,me, dims; do_visu=false,do_save=true,hidecom=false)
 me == 0 && open("diffusion_2D_perf_multixpu.txt", "a") do f
     println(f, "no hidecomm, t_toc = $(t_toc)")
 end
 
-for (i,j) in ([2,16,16],[2,4,16])
-    t_toc, me = diffusion_2D(; do_visu=false,do_save=true)
+# ([2,16,16],[2,4,16])
+for (i,j) in ([2,2],[16,4],[16,16])
+    t_toc, _ = diffusion_2D(Lx, Ly,D,nx, ny,nout,me, dims; do_visu=false,do_save=true)
     if me == 0
         push!(times, t_toc)
         push!(is, i)
@@ -33,9 +45,13 @@ for (i,j) in ([2,16,16],[2,4,16])
         end
     end
 end
+finalize_global_grid()
 
+me==0&&println(is,times)
 # Plot
-plot(is, times, label="time hidecomm", xlabel="i", ylabel="time (s)", title="time hidecomunication",xticks=[no-hidecomm, (2,2), (8,2), (16,4), (16,16)])
+p = plot(is, times, label="time hidecomm", xlabel="i", ylabel="time (s)", title="time hidecomunication",xticks=["no-hidecomm", (2,2), (8,2), (16,4), (16,16)])
 
+println("plot:")
+println(p)
 # Save
-savefig("time_communtication.png")
+savefig(p,"time_communtication.png")
