@@ -9,33 +9,44 @@ The aim of this procet is to to extend a previously implemented pseudo-transient
 The underlying equations are:
  - Darcy flux
 ```math
-\boldsymbol{q}_D =-\frac{k}{\eta}\left(\nabla p-\rho_0 \alpha \boldsymbol{g} T\right)
+\begin{alignat}{1}
+    \boldsymbol{q}_D =-\frac{k}{\eta}\left(\nabla p-\rho_0 \alpha \boldsymbol{g} T\right)
+\end{alignat}
 ```
 - Mass balance equation
 ```math
-\nabla \cdot \boldsymbol{q}_{\boldsymbol{D}}=0
+\begin{alignat}{1}
+    \nabla \cdot \boldsymbol{q}_{\boldsymbol{D}}=0
+\end{alignat}
 ```
 - Temperature diffusion flux
 ```math
-\boldsymbol{q}_{\boldsymbol{T}}+\frac{\lambda}{\rho_0 c_p} \nabla T=0
+\begin{alignat}{1}
+    \boldsymbol{q}_{\boldsymbol{T}}+\frac{\lambda}{\rho_0 c_p} \nabla T=0
+\end{alignat}
 ```
 - Transient advection-diffusion equation
 ```math
-\frac{\partial T}{\partial t}+\frac{1}{\varphi} \boldsymbol{q}_{\boldsymbol{D}} \cdot \nabla T+\nabla \cdot \boldsymbol{q}_{\boldsymbol{T}}=0
+\begin{alignat}{1}
+    \frac{\partial T}{\partial t}+\frac{1}{\varphi} \boldsymbol{q}_{\boldsymbol{D}} \cdot \nabla T+\nabla \cdot \boldsymbol{q}_{\boldsymbol{T}}=0
+\end{alignat}
 ```
 
 where $q_{D}$ is the Darcy flux, $k$ is the permeability, $\eta$ id the fluid viscosity, $p$ is the pressure, $\rho_{0}$ is the density, $\alpha$ is the termal expansion coeficient, $T$ is the temperature, $q_{T}$ is the conductive heat flux, $c_{p}$ is the specific heat capacity, $t$ it the physical time and $\varphi$ is the porosity.
 
 ## Numerical methods
-The
-$$
+To solve this coupled system of equations for statdy state at each time step the pseudo-transient method is applied, where the time evolution is achieved by discretising the time derivative in eq(4). This means that eq(1-4) are augmented with pseudo-transient derivatives, in the case of eq(1-2) adding inertial terms to the system, in eq(3) a pseudo compresibility and in eq(4) the physical time step is discretised using first order Euler integration and a pseudo-transient term is added to solve to steady state equation at each time step.
+The left hand sides of the mass balance and temperatur flux equations are measured as residuals, which are used to control the divergence behaviour of the iterative method.
+```math
 \begin{alignat}{1}
-&\theta_D \frac{\partial \boldsymbol{q}_D}{\partial \tau}+\boldsymbol{q}_D=-\frac{k}{\eta}\left(\nabla p-\rho_0 \alpha \boldsymbol{g} T\right) \\
-&\theta_T \frac{\partial \boldsymbol{q}_T}{\partial \tau}+\boldsymbol{q}_T=-\frac{\lambda}{\rho_0 c_p} \nabla T = R_{P_{f}}\\
-&\beta \frac{\partial p}{\partial \tau}+\nabla \cdot \boldsymbol{q}_D=0=R_{T} \\
-&\frac{\partial T}{\partial \tau}+\frac{T-T_{\text {old }}}{\mathrm{d} t}+\frac{1}{\varphi} \boldsymbol{q}_D \cdot \nabla T+\nabla \cdot \boldsymbol{q}_{\boldsymbol{T}}=0
+    &\theta_D \frac{\partial \boldsymbol{q}_D}{\partial \tau}+\boldsymbol{q}_D=-\frac{k}{\eta}\left(\nabla p-\rho_0 \alpha \boldsymbol{g} T\right) \\
+    &\theta_T \frac{\partial \boldsymbol{q}_T}{\partial \tau}+\boldsymbol{q}_T+\frac{\lambda}{\rho_0 c_p} \nabla T =0= R_{P_{f}}\\
+    &\beta \frac{\partial p}{\partial \tau}+\nabla \cdot \boldsymbol{q}_D=0=R_{T} \\
+    &\frac{\partial T}{\partial \tau}+\frac{T-T_{\text {old }}}{\mathrm{d} t}+\frac{1}{\varphi} \boldsymbol{q}_D \cdot \nabla T+\nabla \cdot \boldsymbol{q}_{\boldsymbol{T}}=0
 \end{alignat}
-$$
+```
+
+where $\theta_{D}$ is the characteristic relaxation time for pressure, $\theta_{T}$ is the characteristic relaxation time for temperature, $\beta$ is the pseudo compresibility and $\tau$ is the pseudo-time.
 
 
 ## Results
