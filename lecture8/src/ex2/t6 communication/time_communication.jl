@@ -14,12 +14,18 @@ include("../t3/l8_diffusion_2D_perf_multixpu.jl")
 times = []
 is = []
 js = []
-for i,j in ([2,16,16],[2,4,16])
+for (i,j) in ([2,16,16],[2,4,16])
     t_toc, me = diffusion_2D(; do_visu=false,do_save=true)
     if me == 0
         push!(times, t_toc)
-        #TODO append to file
+        push!(is, i)
+        push!(js, j)
+        # append to file
+        open("diffusion_2D_perf_multixpu.txt", "a") do f
+            println(f, "i = $(i), j = $(j), t_toc = $(t_toc)")
+        end
     end
 end
 
-# TODO: Plot
+# Plot
+plot(is, times, label="diffusion_2D_perf_multixpu", xlabel="i", ylabel="time (s)", title="diffusion_2D_perf_multixpu")
