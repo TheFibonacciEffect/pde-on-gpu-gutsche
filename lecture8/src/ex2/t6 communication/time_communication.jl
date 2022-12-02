@@ -37,7 +37,7 @@ end
 
 # ([2,16,16],[2,4,16])
 for (i,j) in ([2,2],[8,2],[16,4],[16,16])
-    t_toc, _ = diffusion_2D(Lx, Ly,D,nx, ny,nout,me, dims; do_visu=false,do_save=true,hc_x=i, hc_y=j)
+    local t_toc, _ = diffusion_2D(Lx, Ly,D,nx, ny,nout,me, dims; do_visu=false,do_save=true,hc_x=i, hc_y=j)
     if me == 0
         push!(times, t_toc)
         push!(is, i)
