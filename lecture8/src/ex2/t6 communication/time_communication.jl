@@ -30,6 +30,9 @@ js = []
 t_toc, me = diffusion_2D(Lx, Ly,D,nx, ny,nout,me, dims; do_visu=false,do_save=true,hidecom=false)
 me == 0 && open("diffusion_2D_perf_multixpu.txt", "a") do f
     println(f, "no hidecomm, t_toc = $(t_toc)")
+    push!(times,t_toc)
+    push!(is, 0)
+    push!(js, 0)
 end
 
 # ([2,16,16],[2,4,16])
@@ -49,7 +52,7 @@ finalize_global_grid()
 
 me==0&&println(is,times)
 # Plot
-p = plot(is, times, label="time hidecomm", xlabel="i", ylabel="time (s)", title="time hidecomunication",xticks=["no-hidecomm", (2,2), (8,2), (16,4), (16,16)])
+p = plot(js, times,markershape=:circle, label="time hidecomm", xlabel="j", ylabel="time (s)", title="time hidecomunication",xscale=:log)
 
 println("plot:")
 println(p)
