@@ -47,7 +47,7 @@ qt.qpa.xcb: could not connect to display
 qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "" even though it was found.
 This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
 
-Available platform plugins are: linuxfb, minimal, offscreen, vnc, xcb.
+Available platform plugins are: minimal, xcb, minimalegl, offscreen, linuxfb, vnc, eglfs.
 
 Aborted (core dumped)
 connect: Connection refused
