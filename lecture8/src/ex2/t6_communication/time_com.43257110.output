@@ -1,0 +1,43 @@
+Global grid: 126x126x1 (nprocs: 4, dims: 2x2x1)
+Time = 0.126 sec, T_eff = 0.33 GB/s (niter = 641)
+Time = 0.126 sec, T_eff = 0.33 GB/s (niter = 641)
+Time = 0.126 sec, T_eff = 0.33 GB/s (niter = 641)
+Time = 0.126 sec, T_eff = 0.33 GB/s (niter = 641)
+Time = 0.163 sec, T_eff = 0.26 GB/s (niter = 641)
+Time = 0.163 sec, T_eff = 0.26 GB/s (niter = 641)
+Time = 0.163 sec, T_eff = 0.26 GB/s (niter = 641)
+Time = 0.163 sec, T_eff = 0.26 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Time = 0.158 sec, T_eff = 0.27 GB/s (niter = 641)
+Any[2, 16, 16]Any[0.16286587715148926, 0.15816593170166016, 0.15807485580444336]
+plot:
+Plot{Plots.GRBackend() n=1}
+plot:
+Plot{Plots.GRBackend() n=1}
+plot:
+Plot{Plots.GRBackend() n=1}
+plot:
+Plot{Plots.GRBackend() n=1}
+
+
+Batch Job Summary Report (version 21.01.1) for Job "time_com" (43257110) on daint
+
+Job information (1/2)
+-----------------------------------------------------------------------------------------------------
+             Submit            Eligible               Start                 End    Elapsed Time limit
+------------------- ------------------- ------------------- ------------------- ---------- ----------
+2022-12-02T19:00:32 2022-12-02T19:00:33 2022-12-02T19:01:18 2022-12-02T19:03:19   00:02:01   01:00:00
+-----------------------------------------------------------------------------------------------------
+
+Job information (2/2)
+-------------------------------------------------------------
+    Username      Account    Partition   NNodes        Energy
+------------ ------------ ------------ -------- -------------
+    class202      class04       normal        4     42.220 kJ
+

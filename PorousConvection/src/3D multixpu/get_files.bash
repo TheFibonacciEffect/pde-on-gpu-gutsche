@@ -1,0 +1,1 @@
+scp -r class202@daint:/users/class202/repo/docs ../..

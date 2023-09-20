@@ -3,11 +3,11 @@ module PorousConvection_2D_xpu
 using Printf,LazyArrays,Plots
 using Dates
 
-const USE_GPU = false
+const USE_GPU = true
 using ParallelStencil
 using ParallelStencil.FiniteDifferences2D
 @static if USE_GPU
-    @init_paraxllel_stencil(CUDA, Float64, 2)
+    @init_parallel_stencil(CUDA, Float64, 2)
 else
     @init_parallel_stencil(Threads, Float64, 2)
 end

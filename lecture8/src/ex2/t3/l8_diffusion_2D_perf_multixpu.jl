@@ -1,4 +1,3 @@
-print_time(@__LINE__)
 # macros to avoid array allocation
 macro qx(ix,iy)  esc(:( -D_dx*(C[$ix+1,$iy+1] - C[$ix,$iy+1]) )) end
 macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
@@ -10,7 +9,7 @@ macro qy(ix,iy)  esc(:( -D_dy*(C[$ix+1,$iy+1] - C[$ix+1,$iy]) )) end
     return
 end
 
-@views function diffusion_2D(; do_visu=false,do_save=false,ttot = 1e-4)
+@views function diffusion_2D(; do_visu=false,do_save=false,ttot = 1e-4,timestep_override=0,hc_x=8, hc_y=2,hidecom=true)
     # Physics
     Lx, Ly  = 10.0, 10.0
     D       = 1.0
@@ -21,7 +20,7 @@ end
     me, dims = init_global_grid(nx, ny, 1)  # Initialization more...
     dx, dy  = Lx/nx_g(), Ly/ny_g()
     dt      = min(dx, dy)^2/D/4.1
-    nt      = cld(ttot, dt)
+    nt      = timestep_override==0 ? cld(ttot, dt) : timestep_override
     D_dx    = D/dx
     D_dy    = D/dy
     _dx, _dy= 1.0/dx, 1.0/dy
@@ -42,15 +41,20 @@ end
         xi_g, yi_g = LinRange(dx+dx/2, Lx-dx-dx/2, nx_v), LinRange(dy+dy/2, Ly-dy-dy/2, ny_v) # inner points only
     end
     # Time loop
-    print_time(@__LINE__)
     GC.gc(); GC.enable(false)
     for it = 1:nt
         if (it==11) t_tic = Base.time(); niter = 0 end  #NOTE if the time is very small this is not reached
-        @hide_communication (8, 2) begin #with @hide_communication since it was the task description
-            @parallel compute!(C2, C,_dx, _dy, D_dx, D_dy, dt, size_C1_2, size_C2_2)
-            C, C2 = C2, C # pointer swap
-            update_halo!(C)
-        end
+            if hidecom
+                @hide_communication (hc_x, hc_y) begin #with @hide_communication since it was the task description
+                    @parallel compute!(C2, C,_dx, _dy, D_dx, D_dy, dt, size_C1_2, size_C2_2)
+                    C, C2 = C2, C # pointer swap
+                    update_halo!(C)
+                end
+            else
+                @parallel compute!(C2, C,_dx, _dy, D_dx, D_dy, dt, size_C1_2, size_C2_2)
+                C, C2 = C2, C # pointer swap
+                update_halo!(C)
+            end
         niter += 1
         if do_visu && (it % nout == 0)
             C_inn .= Array(C)[2:end-1,2:end-1]; gather!(C_inn, C_v)
@@ -62,7 +66,6 @@ end
     end
     GC.enable(true)
     finalize_global_grid()
-    print_time(@__LINE__)
     # Create animation
     if (do_visu && me==0) gif(anim, "../docs/diffusion_2D_mxpu.gif", fps = 5)  end
     # Benchmarking

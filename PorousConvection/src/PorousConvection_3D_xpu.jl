@@ -14,11 +14,21 @@ end
 
 @views av1(A) = 0.5.*(A[1:end-1].+A[2:end])
 
+"""
+    save_array(Aname,A)
+
+Saves array A as binary file with name Aname.
+"""
 function save_array(Aname,A)
     fname = string(Aname,".bin")
     out = open(fname,"w"); write(out,A); close(out)
 end
 
+"""
+    compute_Dflux!(qDx,qDy,qDz,Pf,T,k_ηf,_dx,_dy,_dz,αρg,_1_θ_dτ_D)
+
+Calculated current Darcy flux from effective pressure and subtracts it from previous result.
+"""
 @parallel function compute_flux!(qDx,qDy,qDz,Pf,T,k_ηf,_dx,_dy,_dz,αρgx,αρgy,αρgz,_θ_dτ_D)
     @inn_x(qDx) = @inn_x(qDx) - (@inn_x(qDx) + k_ηf*(@d_xa(Pf)*_dx - αρgx*@av_xa(T)))*_θ_dτ_D
     @inn_y(qDy) = @inn_y(qDy) - (@inn_y(qDy) + k_ηf*(@d_ya(Pf)*_dy - αρgy*@av_ya(T)))*_θ_dτ_D
@@ -26,11 +36,21 @@ end
     return nothing
 end
 
+"""
+    update_Pf!(Pf,qDx,qDy,qDz,_dx,_dy,_dz,_β_dτ_D)
+
+Effective pressure update calculated from the divergence of the Darcy flux.
+"""
 @parallel function update_Pf!(Pf,qDx,qDy,qDz,_dx,_dy,_dz,_β_dτ_D)
     @all(Pf) = @all(Pf) - (@d_xa(qDx)*_dx + @d_ya(qDy)*_dy + @d_za(qDz)*_dz)*_β_dτ_D
     return nothing
 end
 
+"""
+    update_temperature_flux(qTx,qTy,qTz,λ_ρCp,T,_θ_dτ_T,_dx,_dy,_dz)
+
+Calculates temperature flux based on the gradient of temperature and material propoerties.
+"""
 @parallel function update_temperature_flux(qTx,qTy,qTz,λ_ρCp,T,_θ_dτ_T,_dx,_dy,_dz)
     @all(qTx) = @all(qTx) - (@all(qTx) + λ_ρCp.*(@d_xi(T)*_dx))*_θ_dτ_T
     @all(qTy) = @all(qTy) - (@all(qTy) + λ_ρCp.*(@d_yi(T)*_dy))*_θ_dτ_T
@@ -38,6 +58,11 @@ end
     return
 end
 
+"""
+    update_dTdt!(dTdt,T,T_old,dt,max,qDx,_dx,min,qDy,_dy,qDz,_dz,ϕ)
+
+Calculates the advection of the temperature field using an upwind scheme.
+"""
 @parallel_indices (i,j,k) function update_dTdt!(dTdt,T,T_old,dt,max,qDx,_dx,min,qDy,_dy,qDz,_dz,ϕ)
     nx,ny,nz=size(T)
     if (2<=i<=nx-1 && 2<=j<=ny-1 && 2<=k<=nz-1)
@@ -54,23 +79,43 @@ end
     return
 end
 
+"""
+    update_T!(T,qTx,qTy,qTz,dTdt,_dx,_dy,_dz,_1_dt_β_dτ_T)
+
+Temperature update calculated from the divergence of the temperature flux and the advected temperature field
+"""
 @parallel function temperature_update!(T,dTdt,qTx,qTy,qTz,_dx,_dy,_dz,β_dτ_T,dt)
     @inn(T) = @inn(T)- (@all(dTdt) + @d_xa(qTx) * _dx + @d_ya(qTy) * _dy + @d_za(qTz) * _dz) / (1.0 / dt + β_dτ_T)
     return
 end
 
+"""
+    function bc_x!(A)
+
+Von Neumann boundary condition in x direction
+"""
 @parallel_indices (iy,iz) function bc_x!(A)
     A[1  ,iy,iz] = A[2    ,iy,iz]
     A[end,iy,iz] = A[end-1,iy,iz]
     return
 end
 
+"""
+    function bc_y!(A)
+        
+Von Neumann boundary condition in y direction
+"""
 @parallel_indices (ix,iz) function bc_y!(A)
     A[ix ,1 ,iz] = A[ix,    2,iz]
     A[ix,end,iz] = A[ix,end-1,iz]
     return
 end
 
+"""
+    porous_convection_3D(;nz=63,do_visu=false)
+        
+Porous convection solver using the pseudo-transient method and time evolution
+"""
 @views function porous_convection_3D(;nz = 127,nt= 2000,do_vis=false,save_arr=true)
     # physics
     lx,ly,lz    = 40.0,20.0,20.0
